@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부동산 도슨트 임장런</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; }
+        #header { background: #007AFF; color: white; padding: 15px; text-align: center; }
+        #map { height: 50vh; width: 100%; }
+        #info-panel { height: 35vh; padding: 20px; background: #f9f9f9; border-top: 2px solid #ddd; }
+        .controls { padding: 10px; text-align: center; background: #eee; }
+        button { padding: 10px 20px; font-size: 16px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .announcement { background: white; padding: 15px; border-radius: 10px; margin-top: 10px; border-left: 5px solid #007AFF; }
+        .highlight { color: #007AFF; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="header">부동산 러닝 도슨트 임장런 (시뮬레이션 모드)</div>
+<div class="controls">
+    <button onclick="startSimulation()">🏃 가상 러닝 시작 (시뮬레이션)</button>
+</div>
+<div id="map"></div>
+<div id="info-panel">
+    <div id="status">상태: 대기 중</div>
+    <div id="announcement-area" class="announcement">
+        <strong>도슨트 가이드:</strong> <span id="guide-text">버튼을 누르면 가상 경로 이동을 시작합니다.</span>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry&callback=initMap" async defer></script>
+
+<script>
+    let map, userMarker;
+    let announcedIds = new Set();
+
+    // 업로드된 실거래가 데이터를 기반으로 구성한 샘플 좌표
+    const propertyData = [
+        { id: 1, name: "구성사거리 단독주택 매물", lat: 37.2890, lng: 127.1140, info: "현재 지나시는 구역은 기흥구 구성동입니다. 최근 단독주택 실거래가는 평당 약 1,800만 원대로 형성되어 있습니다." },
+        { id: 2, name: "언남동 공원 구역", lat: 37.2910, lng: 127.1160, info: "우측에 언남동 생활권 공원이 위치해 있습니다. 쾌적한 주거 여건 덕분에 전세 수요가 높은 지역입니다." },
+        { id: 3, name: "구성역 예정지 인근 상가", lat: 37.2930, lng: 127.1180, info: "이곳은 지하철역 예정지 인근으로, 최근 상가 임대 수익률이 4%대로 안정화되는 추세입니다." }
+    ];
+
+    function initMap() {
+        const startPos = { lat: 37.2880, lng: 127.1130 };
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: startPos,
+            zoom: 16
+        });
+
+        // 부동산 포인트 마커 표시
+        propertyData.forEach(prop => {
+            new google.maps.Marker({
+                position: { lat: prop.lat, lng: prop.lng },
+                map: map,
+                label: "POI"
+            });
+        });
+
+        // 사용자 초기 마커
+        userMarker = new google.maps.Marker({
+            position: startPos,
+            map: map,
+            icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 5, fillColor: "#007AFF", fillOpacity: 1, strokeWeight: 2 }
+        });
+    }
+
+    // 시뮬레이션: 마커를 북동쪽으로 조금씩 이동시킴
+    function startSimulation() {
+        let currentLat = 37.2880;
+        let currentLng = 127.1130;
+        document.getElementById('status').innerText = "상태: 시뮬레이션 주행 중...";
+
+        const interval = setInterval(() => {
+            currentLat += 0.0001; // 조금씩 이동
+            currentLng += 0.0001;
+            const newPos = { lat: currentLat, lng: currentLng };
+
+            userMarker.setPosition(newPos);
+            map.panTo(newPos);
+
+            // 거리 체크 로직 실행
+            checkDistance(newPos);
+
+            // 경로가 끝나면 멈춤 (샘플상 약 1분 주행)
+            if (currentLat > 37.2950) {
+                clearInterval(interval);
+                document.getElementById('status').innerText = "상태: 시뮬레이션 종료";
+            }
+        }, 500); // 0.5초마다 위치 업데이트
+    }
+
+    function checkDistance(userPos) {
+        propertyData.forEach(prop => {
+            const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(userPos.lat, userPos.lng),
+                new google.maps.LatLng(prop.lat, prop.lng)
+            );
+
+            // 50m 이내 진입 시
+            if (distance < 50 && !announcedIds.has(prop.id)) {
+                announcedIds.add(prop.id);
+                speakDocent(prop.info);
+            }
+        });
+    }
+
+    function speakDocent(text) {
+        document.getElementById('guide-text').innerText = text;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ko-KR';
+        window.speechSynthesis.speak(utterance);
+    }
+</script>
+</body>
+</html>
