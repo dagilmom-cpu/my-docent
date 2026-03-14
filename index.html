@@ -1,158 +1,324 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Property Docent Final</title>
-    <style>
-        :root { --primary: #007AFF; --dark: #1C1C1E; --bg: #F2F2F7; }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--dark); overflow: hidden; height: 100vh; }
-        
-        /* 1. 설정 화면 */
-        #setup-screen { position: fixed; inset: 0; background: white; z-index: 2000; padding: 30px; display: flex; flex-direction: column; overflow-y: auto; }
-        .setup-header { font-size: 1.6rem; font-weight: 800; margin-bottom: 30px; color: var(--dark); }
-        .option-box { margin-bottom: 25px; }
-        .option-label { display: block; font-weight: 700; margin-bottom: 12px; color: #8E8E93; font-size: 0.9rem; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-grid button { padding: 15px; border: 1.5px solid #E5E5EA; border-radius: 14px; background: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-grid button.active { background: var(--primary); color: white; border-color: var(--primary); }
-        #start-service-btn { width: 100%; padding: 20px; background: var(--dark); color: white; border: none; border-radius: 18px; font-weight: 700; font-size: 1.2rem; margin-top: auto; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-        /* 2. 메인 화면 */
-        #main-screen { display: none; height: 100vh; flex-direction: column; }
-        #header { background: var(--dark); color: white; padding: 20px; text-align: center; font-weight: 800; font-size: 1.1rem; }
-        #map { flex: 1; width: 100%; position: relative; }
-        #info-panel { height: 35vh; padding: 25px; background: white; border-top-left-radius: 30px; border-top-right-radius: 30px; position: relative; top: -30px; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); }
-        .guide-card { background: #F8F9FB; padding: 20px; border-radius: 20px; border-left: 5px solid var(--primary); min-height: 100px; display: flex; align-items: center; justify-content: center; text-align: center; }
-        
-        /* 내 위치 버튼 */
-        .my-pos-btn { position: absolute; right: 20px; bottom: 38vh; width: 55px; height: 55px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10; border: none; font-size: 24px; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Real-Time Property Docent</title>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAP_KEY&libraries=geometry"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:-apple-system,sans-serif;
+background:#f2f2f7;
+}
+
+#map{
+height:100vh;
+width:100%;
+}
+
+#panel{
+position:absolute;
+bottom:0;
+width:100%;
+height:160px;
+background:white;
+border-radius:20px 20px 0 0;
+padding:20px;
+box-shadow:0 -5px 20px rgba(0,0,0,0.1);
+}
+
+#guideTitle{
+font-size:18px;
+font-weight:700;
+margin-bottom:10px;
+}
+
+#guideText{
+font-size:14px;
+color:#555;
+}
+
+#myLocation{
+position:absolute;
+right:20px;
+bottom:200px;
+width:60px;
+height:60px;
+border-radius:50%;
+border:none;
+background:white;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+font-size:26px;
+cursor:pointer;
+}
+
+</style>
+
 </head>
+
 <body>
 
-<div id="setup-screen">
-    <div class="setup-header">운동 가이드 설정</div>
-    <div class="option-box">
-        <span class="option-label">1. 운동 종류</span>
-        <div class="btn-grid"><button class="active" onclick="selectOpt(this, 'mode')">산책 🚶</button><button onclick="selectOpt(this, 'mode')">러닝 🏃</button></div>
-    </div>
-    <div class="option-box">
-        <span class="option-label">2. 목표 거리</span>
-        <div class="btn-grid"><button class="active" onclick="selectOpt(this, 'dist')">1 km</button><button onclick="selectOpt(this, 'dist')">3 km</button><button onclick="selectOpt(this, 'dist')">5 km</button><button onclick="selectOpt(this, 'dist')">10 km</button></div>
-    </div>
-    <div class="option-box">
-        <span class="option-label">3. 부동산 도슨트</span>
-        <div class="btn-grid"><button class="active" onclick="selectOpt(this, 'docent')">안내 켜기</button><button onclick="selectOpt(this, 'docent')">안내 끄기</button></div>
-    </div>
-    <button id="start-service-btn" onclick="startApp()">서비스 시작하기</button>
+<div id="map"></div>
+
+<div id="panel">
+<div id="guideTitle">부동산 도슨트</div>
+<div id="guideText">데이터 로딩중...</div>
 </div>
 
-<div id="main-screen">
-    <div id="header">REAL-TIME DOCENT</div>
-    <div id="map"></div>
-    <button class="my-pos-btn" onclick="centerMap()">📍</button>
-    <div id="info-panel">
-        <div class="guide-card">
-            <div id="guide-text" style="font-size: 1.1rem; font-weight: 600; line-height: 1.6;">GPS 연결 중입니다...<br>밖으로 이동하며 안내를 기다려주세요.</div>
-        </div>
-    </div>
-</div>
-
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry&callback=initMap" async defer></script>
+<button id="myLocation">📍</button>
 
 <script>
-    let map, runnerMarker, watchId;
-    const EL_API_KEY = "6de3761d943fe084486efb94676a26daab9fc28640b57951"; 
-    const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
-    let announcedIds = new Set();
-    let config = { mode: '산책 🚶', dist: '1 km', docent: '안내 켜기' };
 
-    // [30개 텍스트 데이터의 좌표 및 핵심 내용 반영]
-    const propertyData = [
-        { id: 1, lat: 37.2892, lng: 127.1145, info: "언남동 삼성래미안 단지입니다. 최근 84제곱미터 기준 실거래가는 약 8억 5천만 원 선입니다." },
-        { id: 2, lat: 37.2930, lng: 127.1180, info: "구성사거리 메인 상권입니다. 상가 수익률은 4퍼센트대로 안정적인 흐름을 보이고 있습니다." },
-        { id: 3, lat: 37.2910, lng: 127.1160, info: "언남동 소공원입니다. 운동시설이 완비되어 인근 아파트 선호도를 높여줍니다." },
-        { id: 4, lat: 37.2870, lng: 127.1120, info: "기흥구 창고 시설입니다. 최근 매매가는 평당 1,500만 원 선으로 가치가 상승 중입니다." },
-        { id: 5, lat: 37.2950, lng: 127.1200, info: "구성동 단독주택지입니다. 최근 대지면적당 1,800만 원대에 거래된 사례가 있습니다." },
-        { id: 6, lat: 37.2880, lng: 127.1130, info: "언남동 다가구 주택지입니다. 수익형 부동산으로 인기가 많은 구역입니다." },
-        // ... (나머지 데이터들도 주변 좌표에 맞춰 자동으로 배치됩니다)
-    ];
+const GOOGLE_KEY="YOUR_GOOGLE_MAP_KEY"
+const ELEVEN_KEY="YOUR_ELEVEN_API_KEY"
+const VOICE_ID="YOUR_VOICE_ID"
 
-    function selectOpt(btn, type) {
-        btn.parentNode.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        config[type] = btn.innerText;
-    }
+let map
+let userMarker
+let audioPlayer=new Audio()
 
-    function initMap() {
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: 37.2885, lng: 127.1135}, zoom: 17, disableDefaultUI: true,
-            styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
-        });
-        
-        // **수정된 러닝 아이콘 설정**
-        runnerMarker = new google.maps.Marker({
-            map: map,
-            icon: { 
-                url: "image_06e1b0.png", // 업로드하신 러닝 아이콘 파일명으로 적용
-                scaledSize: new google.maps.Size(50, 50), // 크기 조절
-                anchor: new google.maps.Point(25, 25)
-            }
-        });
-    }
+let points=[]
+let announced=new Set()
 
-    async function startApp() {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') await audioCtx.resume();
+async function init(){
 
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('main-screen').style.display = 'flex';
+map=new google.maps.Map(document.getElementById("map"),{
+center:{lat:37.288,lng:127.114},
+zoom:15,
+disableDefaultUI:true
+})
 
-        const welcome = `반갑습니다. 선택하신 ${config.dist} ${config.mode} 안내를 시작합니다.`;
-        document.getElementById('guide-text').innerText = welcome;
-        
-        await playElevenLabs(welcome);
+userMarker=new google.maps.Marker({
+map:map,
+icon:"https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+})
 
-        if (navigator.geolocation) {
-            watchId = navigator.geolocation.watchPosition((pos) => {
-                const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                runnerMarker.setPosition(p);
-                map.panTo(p);
-                if (config.docent === '안내 켜기') checkDistance(p);
-            }, (e) => console.error(e), { enableHighAccuracy: true });
-        }
-    }
+await loadAllData()
 
-    function checkDistance(pos) {
-        propertyData.forEach(prop => {
-            const dist = google.maps.geometry.spherical.computeDistanceBetween(
-                new google.maps.LatLng(pos.lat, pos.lng), new google.maps.LatLng(prop.lat, prop.lng)
-            );
-            if (dist < 60 && !announcedIds.has(prop.id)) {
-                announcedIds.add(prop.id);
-                document.getElementById('guide-text').innerText = prop.info;
-                playElevenLabs(prop.info);
-            }
-        });
-    }
+startGPS()
 
-    async function playElevenLabs(text) {
-        try {
-            const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "xi-api-key": EL_API_KEY },
-                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
-            });
-            const blob = await response.blob();
-            const audio = new Audio(URL.createObjectURL(blob));
-            await audio.play();
-        } catch (e) { console.error("오디오 재생 실패", e); }
-    }
+}
 
-    function centerMap() { 
-        if(runnerMarker.getPosition()) map.panTo(runnerMarker.getPosition()); 
-    }
+async function loadAllData(){
+
+document.getElementById("guideText").innerText="데이터 변환중..."
+
+await loadCSV("data/아파트(매매)_실거래가_20260314195705.csv","아파트")
+await loadCSV("data/오피스텔(매매)_실거래가_20260314195741.csv","오피스텔")
+await loadCSV("data/토지(매매)_실거래가_20260314195804.csv","토지")
+
+await loadTrail("data/산책로현황.txt")
+await loadPark("data/자연공원현황.txt")
+
+document.getElementById("guideText").innerText="GPS 위치 확인중..."
+
+}
+
+async function loadCSV(path,type){
+
+const res=await fetch(path)
+const text=await res.text()
+
+const rows=text.split("\n")
+
+for(const row of rows.slice(1,10)){
+
+const col=row.split(",")
+
+const address=col[0]
+
+const pos=await geocode(address)
+
+if(pos){
+
+points.push({
+id:type+address,
+lat:pos.lat,
+lng:pos.lng,
+text:`${address} 지역 ${type} 거래가 발생했습니다`
+})
+
+}
+
+}
+
+}
+
+async function loadTrail(path){
+
+const res=await fetch(path)
+const text=await res.text()
+
+const rows=text.split("\n")
+
+for(const row of rows.slice(1,6)){
+
+const col=row.split("\t")
+
+const name=col[1]
+const address=col[2]
+
+const pos=await geocode(address)
+
+if(pos){
+
+points.push({
+id:name,
+lat:pos.lat,
+lng:pos.lng,
+text:`${name} 산책로 구간입니다`
+})
+
+}
+
+}
+
+}
+
+async function loadPark(path){
+
+const res=await fetch(path)
+const text=await res.text()
+
+const rows=text.split("\n")
+
+for(const row of rows.slice(1,6)){
+
+const col=row.split("\t")
+
+const name=col[1]
+const address=col[3]
+
+const pos=await geocode(address)
+
+if(pos){
+
+points.push({
+id:name,
+lat:pos.lat,
+lng:pos.lng,
+text:`${name} 공원입니다`
+})
+
+}
+
+}
+
+}
+
+async function geocode(address){
+
+try{
+
+const url=`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_KEY}`
+
+const res=await fetch(url)
+const data=await res.json()
+
+if(data.status==="OK"){
+
+return{
+lat:data.results[0].geometry.location.lat,
+lng:data.results[0].geometry.location.lng
+}
+
+}
+
+}catch(e){}
+
+return null
+
+}
+
+function startGPS(){
+
+navigator.geolocation.watchPosition(pos=>{
+
+const p={
+lat:pos.coords.latitude,
+lng:pos.coords.longitude
+}
+
+userMarker.setPosition(p)
+
+map.panTo(p)
+
+checkDistance(p)
+
+})
+
+}
+
+function checkDistance(p){
+
+points.forEach(point=>{
+
+const dist=google.maps.geometry.spherical.computeDistanceBetween(
+new google.maps.LatLng(p.lat,p.lng),
+new google.maps.LatLng(point.lat,point.lng)
+)
+
+if(dist<120&&!announced.has(point.id)){
+
+announced.add(point.id)
+
+document.getElementById("guideTitle").innerText="도슨트 안내"
+document.getElementById("guideText").innerText=point.text
+
+speak(point.text)
+
+}
+
+})
+
+}
+
+async function speak(text){
+
+try{
+
+const res=await fetch(
+`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+{
+method:"POST",
+headers:{
+"xi-api-key":ELEVEN_KEY,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+text:text,
+model_id:"eleven_multilingual_v2"
+})
+}
+)
+
+const blob=await res.blob()
+
+const url=URL.createObjectURL(blob)
+
+audioPlayer.src=url
+
+audioPlayer.play()
+
+}catch(e){}
+
+}
+
+document.getElementById("myLocation").onclick=()=>{
+
+map.panTo(userMarker.getPosition())
+
+}
+
+init()
+
 </script>
+
 </body>
 </html>
