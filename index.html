@@ -1,324 +1,233 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>임장런 - Imjang Run</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry"></script>
+    <style>
+        :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
+        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        /* 설정 화면 */
+        #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        .header-section { margin-bottom: 25px; }
+        .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        .header-section p { color: var(--gray); margin-top: 5px; font-size: 0.95rem; }
 
-<title>Real-Time Property Docent</title>
+        .setup-group { margin-bottom: 20px; }
+        .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
+        
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 700; }
 
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAP_KEY&libraries=geometry"></script>
+        .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .dist-card.active { background: var(--primary); color: white; }
 
-<style>
+        .select-style {
+            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee;
+            background-color: #fff; font-size: 0.95rem; appearance: none; outline: none; cursor: pointer;
+        }
 
-body{
-margin:0;
-font-family:-apple-system,sans-serif;
-background:#f2f2f7;
-}
+        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
 
-#map{
-height:100vh;
-width:100%;
-}
-
-#panel{
-position:absolute;
-bottom:0;
-width:100%;
-height:160px;
-background:white;
-border-radius:20px 20px 0 0;
-padding:20px;
-box-shadow:0 -5px 20px rgba(0,0,0,0.1);
-}
-
-#guideTitle{
-font-size:18px;
-font-weight:700;
-margin-bottom:10px;
-}
-
-#guideText{
-font-size:14px;
-color:#555;
-}
-
-#myLocation{
-position:absolute;
-right:20px;
-bottom:200px;
-width:60px;
-height:60px;
-border-radius:50%;
-border:none;
-background:white;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-font-size:26px;
-cursor:pointer;
-}
-
-</style>
-
+        /* 메인 UI */
+        #map { height: 100vh; width: 100%; }
+        #panel { position: absolute; bottom: 0; width: 100%; height: 160px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
+        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        #guideText { font-size: 1rem; font-weight: 600; line-height: 1.5; color: var(--dark); }
+        
+        .map-controls { position: absolute; right: 20px; bottom: 180px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
+        .control-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    </style>
 </head>
-
 <body>
 
-<div id="map"></div>
+<div id="overlay">
+    <div class="header-section">
+        <h1>임장런 Imjang Run 🐾</h1>
+        <p>함께 달릴 준비 되셨나요?</p>
+    </div>
 
-<div id="panel">
-<div id="guideTitle">부동산 도슨트</div>
-<div id="guideText">데이터 로딩중...</div>
+    <div class="setup-group">
+        <span class="setup-label">1. 오늘 나의 템포</span>
+        <div class="card-grid">
+            <div class="option-card active" onclick="selectOpt(this, 'mode')">🚶 여유로운 산책</div>
+            <div class="option-card" onclick="selectOpt(this, 'mode')">🏃 시원한 러닝</div>
+        </div>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">2. 목표 거리</span>
+        <div class="dist-grid">
+            <div class="dist-card active" onclick="updateDistance(this, 1)">1km</div>
+            <div class="dist-card" onclick="updateDistance(this, 3)">3km</div>
+            <div class="dist-card" onclick="updateDistance(this, 5)">5km</div>
+            <div class="dist-card" onclick="updateDistance(this, 10)">10km</div>
+        </div>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
+        <select id="courseSelect" class="select-style" onchange="config.course = this.value">
+            <option value="A">📍 동네 대장 아파트 탐방 코스</option>
+            <option value="B">🌳 초록초록 공원 산책 코스</option>
+            <option value="C">🏦 활기찬 상가 거리 분석 코스</option>
+            <option value="D">🏗️ 미래가 기대되는 호재 코스</option>
+        </select>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">4. 가이드 음성</span>
+        <div class="card-grid">
+            <div class="option-card active" onclick="selectOpt(this, 'docent')">친절하게 듣기</div>
+            <div class="option-card" onclick="selectOpt(this, 'docent')">조용히 걷기</div>
+        </div>
+    </div>
+
+    <button class="start-btn" onclick="startApp()">고양이와 함께 출발!</button>
 </div>
 
-<button id="myLocation">📍</button>
+<div id="map"></div>
+<div class="map-controls">
+    <button id="mapTypeBtn" class="control-btn" onclick="toggleMapType()">🛰️</button>
+    <button class="control-btn" onclick="centerMap()">📍</button>
+</div>
+<div id="panel">
+    <div id="guideTitle">START RUNNING</div>
+    <div id="guideText">발걸음을 떼시면 제가 곁에서<br>동네 이야기를 들려드릴게요!</div>
+</div>
 
 <script>
-
-const GOOGLE_KEY="YOUR_GOOGLE_MAP_KEY"
-const ELEVEN_KEY="YOUR_ELEVEN_API_KEY"
-const VOICE_ID="YOUR_VOICE_ID"
-
-let map
-let userMarker
-let audioPlayer=new Audio()
-
-let points=[]
-let announced=new Set()
-
-async function init(){
-
-map=new google.maps.Map(document.getElementById("map"),{
-center:{lat:37.288,lng:127.114},
-zoom:15,
-disableDefaultUI:true
-})
-
-userMarker=new google.maps.Marker({
-map:map,
-icon:"https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-})
-
-await loadAllData()
-
-startGPS()
-
-}
-
-async function loadAllData(){
-
-document.getElementById("guideText").innerText="데이터 변환중..."
-
-await loadCSV("data/아파트(매매)_실거래가_20260314195705.csv","아파트")
-await loadCSV("data/오피스텔(매매)_실거래가_20260314195741.csv","오피스텔")
-await loadCSV("data/토지(매매)_실거래가_20260314195804.csv","토지")
-
-await loadTrail("data/산책로현황.txt")
-await loadPark("data/자연공원현황.txt")
-
-document.getElementById("guideText").innerText="GPS 위치 확인중..."
-
-}
-
-async function loadCSV(path,type){
-
-const res=await fetch(path)
-const text=await res.text()
-
-const rows=text.split("\n")
-
-for(const row of rows.slice(1,10)){
-
-const col=row.split(",")
-
-const address=col[0]
-
-const pos=await geocode(address)
-
-if(pos){
-
-points.push({
-id:type+address,
-lat:pos.lat,
-lng:pos.lng,
-text:`${address} 지역 ${type} 거래가 발생했습니다`
-})
-
-}
-
-}
-
-}
-
-async function loadTrail(path){
-
-const res=await fetch(path)
-const text=await res.text()
-
-const rows=text.split("\n")
-
-for(const row of rows.slice(1,6)){
-
-const col=row.split("\t")
-
-const name=col[1]
-const address=col[2]
-
-const pos=await geocode(address)
-
-if(pos){
-
-points.push({
-id:name,
-lat:pos.lat,
-lng:pos.lng,
-text:`${name} 산책로 구간입니다`
-})
-
-}
-
-}
-
-}
-
-async function loadPark(path){
-
-const res=await fetch(path)
-const text=await res.text()
-
-const rows=text.split("\n")
-
-for(const row of rows.slice(1,6)){
-
-const col=row.split("\t")
-
-const name=col[1]
-const address=col[3]
-
-const pos=await geocode(address)
-
-if(pos){
-
-points.push({
-id:name,
-lat:pos.lat,
-lng:pos.lng,
-text:`${name} 공원입니다`
-})
-
-}
-
-}
-
-}
-
-async function geocode(address){
-
-try{
-
-const url=`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_KEY}`
-
-const res=await fetch(url)
-const data=await res.json()
-
-if(data.status==="OK"){
-
-return{
-lat:data.results[0].geometry.location.lat,
-lng:data.results[0].geometry.location.lng
-}
-
-}
-
-}catch(e){}
-
-return null
-
-}
-
-function startGPS(){
-
-navigator.geolocation.watchPosition(pos=>{
-
-const p={
-lat:pos.coords.latitude,
-lng:pos.coords.longitude
-}
-
-userMarker.setPosition(p)
-
-map.panTo(p)
-
-checkDistance(p)
-
-})
-
-}
-
-function checkDistance(p){
-
-points.forEach(point=>{
-
-const dist=google.maps.geometry.spherical.computeDistanceBetween(
-new google.maps.LatLng(p.lat,p.lng),
-new google.maps.LatLng(point.lat,point.lng)
-)
-
-if(dist<120&&!announced.has(point.id)){
-
-announced.add(point.id)
-
-document.getElementById("guideTitle").innerText="도슨트 안내"
-document.getElementById("guideText").innerText=point.text
-
-speak(point.text)
-
-}
-
-})
-
-}
-
-async function speak(text){
-
-try{
-
-const res=await fetch(
-`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
-{
-method:"POST",
-headers:{
-"xi-api-key":ELEVEN_KEY,
-"Content-Type":"application/json"
-},
-body:JSON.stringify({
-text:text,
-model_id:"eleven_multilingual_v2"
-})
-}
-)
-
-const blob=await res.blob()
-
-const url=URL.createObjectURL(blob)
-
-audioPlayer.src=url
-
-audioPlayer.play()
-
-}catch(e){}
-
-}
-
-document.getElementById("myLocation").onclick=()=>{
-
-map.panTo(userMarker.getPosition())
-
-}
-
-init()
-
+    const ELEVEN_API = "6de3761d943fe084486efb94676a26daab9fc28640b57951";
+    const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
+    let map, runnerMarker;
+    let points = [];
+    let announced = new Set();
+    let audioPlayer = new Audio();
+    const myHome = { lat: 37.3200, lng: 127.1100 };
+    let config = { mode: '🚶 여유로운 산책', dist: 1, docent: '친절하게 듣기', course: 'A' };
+
+    function selectOpt(el, type) {
+        const siblings = el.parentElement.children;
+        for (let s of siblings) s.classList.remove('active');
+        el.classList.add('active');
+        config[type] = el.innerText;
+    }
+
+    function updateDistance(el, d) {
+        const siblings = el.parentElement.children;
+        for (let s of siblings) s.classList.remove('active');
+        el.classList.add('active');
+        config.dist = d;
+    }
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: myHome,
+            zoom: 17,
+            disableDefaultUI: true,
+            styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
+        });
+        runnerMarker = new google.maps.Marker({
+            position: myHome,
+            map: map,
+            icon: {
+                url: "https://cdn-icons-png.flaticon.com/512/616/616430.png",
+                scaledSize: new google.maps.Size(30, 30),
+                anchor: new google.maps.Point(15, 15)
+            }
+        });
+    }
+
+    function toggleMapType() {
+        const current = map.getMapTypeId();
+        map.setMapTypeId(current === 'roadmap' ? 'hybrid' : 'roadmap');
+        document.getElementById('mapTypeBtn').innerText = current === 'roadmap' ? '🗺️' : '🛰️';
+    }
+
+    async function startApp() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            document.getElementById('overlay').style.transform = 'translateY(-100%)';
+            map.setCenter(myPos);
+            runnerMarker.setPosition(myPos);
+            createLocalData(myPos); 
+            startGPS();
+            
+            const startMsg = `오늘 날씨 좋은데요? 선택하신 코스로 임장런을 시작해 볼게요. 제가 옆에서 꼼꼼히 설명해 드릴게요!`;
+            document.getElementById("guideText").innerText = startMsg;
+            if(config.docent.includes('듣기')) speak(startMsg);
+        }, (err) => {
+            document.getElementById('overlay').style.transform = 'translateY(-100%)';
+            createLocalData(myHome);
+        }, { enableHighAccuracy: true });
+    }
+
+    function createLocalData(basePos) {
+        const categories = ["아파트 단지", "상가 거리", "오피스텔", "동네 산책로"];
+        const softTexts = [
+            "요즘 이쪽 아파트들이 인기가 정말 많아요. 평당 시세가 꽤 올랐는데 실거래가 궁금하시죠?",
+            "이 거리는 유동 인구가 정말 많아서 상가 수익률이 꽤 짭짤한 편이에요. 투자로 눈여겨보세요!",
+            "저기 보이는 건물은 용인역 호재가 직접 닿는 곳이에요. 앞으로 가치가 더 기대되는 걸요?",
+            "여기는 동네 주민들이 참 좋아하는 곳이에요. 주거 쾌적성 하나는 보장된 곳이랍니다."
+        ];
+        for (let i = 0; i < 30; i++) {
+            points.push({
+                id: 'p'+i,
+                lat: basePos.lat + (Math.random()-0.5)*0.008,
+                lng: basePos.lng + (Math.random()-0.5)*0.008,
+                text: `지금 지나시는 ${categories[i%4]}에 대해 살짝 알려드릴게요. ${softTexts[i%4]}`
+            });
+        }
+    }
+
+    function startGPS() {
+        navigator.geolocation.watchPosition(pos => {
+            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            runnerMarker.setPosition(p);
+            map.panTo(p);
+            if(config.docent.includes('듣기')) checkDistance(p);
+        }, null, { enableHighAccuracy: true, maximumAge: 0 });
+    }
+
+    function checkDistance(p) {
+        points.forEach(point => {
+            const dist = google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(p.lat, p.lng), new google.maps.LatLng(point.lat, point.lng)
+            );
+            if (dist < 60 && !announced.has(point.id)) {
+                announced.add(point.id);
+                document.getElementById("guideText").innerText = point.text;
+                speak(point.text);
+            }
+        });
+    }
+
+    async function speak(text) {
+        try {
+            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+                method: "POST",
+                headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
+            });
+            const blob = await res.blob();
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.play();
+        } catch (e) {}
+    }
+
+    function centerMap() {
+        const pos = runnerMarker.getPosition();
+        if (pos) map.panTo(pos);
+    }
+
+    window.onload = initMap;
 </script>
-
 </body>
 </html>
