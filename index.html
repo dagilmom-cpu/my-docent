@@ -7,32 +7,27 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CJuddR6QNbyf2kMt0GF8XogwanaFz9Q&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
-        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
-        
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
-        .header-section { margin-bottom: 25px; }
-        .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
-        
-        .setup-group { margin-bottom: 20px; }
+        .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); }
+        .setup-group { margin-top: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
-        
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; font-size: 0.9rem; }
         .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 800; }
-
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; margin-bottom: 10px; }
+        .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; }
+        .dist-card.active { background: var(--primary); color: white; }
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; margin-bottom: 10px; font-size: 0.95rem; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
 
-        /* 지도 위젯 디자인 */
         #map { height: 100vh; width: 100%; }
-        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); display: flex; align-items: center; gap: 5px; }
+        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; border: 2px solid var(--primary); }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
-        
-        #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-sizing: border-box; z-index: 100; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
-        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; }
-        
-        .end-btn { width: 100%; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; }
+        #panel { position: absolute; bottom: 0; width: 100%; min-height: 160px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-sizing: border-box; z-index: 100; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); }
+        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); }
+        #guideText { font-size: 0.95rem; font-weight: 600; margin: 10px 0; }
+        .end-btn { width: 100%; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; }
 
         #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin: 30px 0; }
@@ -44,9 +39,8 @@
 <div id="overlay">
     <div class="header-section">
         <h1>임장런 with 두부 🐾</h1>
-        <p>구성로 90 일대를 날씨와 함께 체크해봐요!</p>
+        <p>구성로 90 일대를 두부와 정복해봐요!</p>
     </div>
-
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
@@ -54,24 +48,29 @@
             <div id="btn-run" class="option-card" onclick="setMode('러닝')">🏃 시원한 러닝</div>
         </div>
     </div>
-
     <div class="setup-group">
-        <span class="setup-label">2. 코스 선택</span>
-        <select id="walkCourse" class="select-style" onchange="updateCourse(this.value)">
+        <span class="setup-label">2. 목표 거리</span>
+        <div class="dist-grid">
+            <div class="dist-card active" onclick="setDist(this, 1)">1km</div>
+            <div class="dist-card" onclick="setDist(this, 3)">3km</div>
+            <div class="dist-card" onclick="setDist(this, 5)">5km</div>
+            <div class="dist-card" onclick="setDist(this, 10)">10km</div>
+        </div>
+    </div>
+    <div class="setup-group">
+        <span class="setup-label">3. 코스 선택</span>
+        <select id="courseSelect" class="select-style" onchange="config.course = this.value">
             <option value="37.318,127.112">🏡 구성동 노후 빌라촌 탐방</option>
             <option value="37.312,127.116">🌳 마북천 수변 공원 코스</option>
             <option value="37.315,127.106">☕ 구성사거리 상가 코스</option>
         </select>
     </div>
-
     <button class="start-btn" onclick="startApp()">두부와 함께 출발!</button>
 </div>
 
 <div id="speed-widget">⚡ 속도: <span id="current-speed">0.0</span> km/h</div>
-<div id="weather-widget">☁️ <span id="temp-info">날씨 로딩 중...</span></div>
-
+<div id="weather-widget">🌡️ <span id="temp-info">23.5°C</span></div>
 <div id="map"></div>
-
 <div id="panel">
     <div id="guideTitle">DUBU NAVI</div>
     <div id="guideText">두부가 지도를 확인하고 있어요!</div>
@@ -81,75 +80,79 @@
 <div id="summary-overlay">
     <h1 style="color:var(--primary)">임장 완료! 🐾</h1>
     <div id="summary-content" class="summary-grid"></div>
-    <button class="start-btn" onclick="location.reload()">다시 시작</button>
+    <button class="start-btn" onclick="location.reload()">새로 시작</button>
 </div>
 
 <script>
+    const ELEVEN_API = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
+    const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
     let map, runnerMarker, directionsService, directionsRenderer;
     let watchId, startTime, totalDistance = 0, lastPos = null;
-    let config = { mode: '산책', course: '37.318,127.112' };
+    let audioPlayer = new Audio();
+    let config = { mode: '산책', dist: 1, docent: '듣기', course: '37.318,127.112' };
+
+    const docentScripts = [
+        "두부 등장! 구성로 90 임장을 시작할게요. 저만 믿고 따라오세요!",
+        "상권이 살아있네요! 배후 세대가 탄탄하다는 증거예요. 꼼꼼히 체크하세요.",
+        "임장 끝! 오늘 본 것들을 잘 정리해두세요. 두부와 함께해서 완벽했습니다!"
+    ];
 
     function initMap() {
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 37.318, lng: 127.110 }, zoom: 16, disableDefaultUI: true
-        });
+        map = new google.maps.Map(document.getElementById("map"), { center: { lat: 37.318, lng: 127.110 }, zoom: 16, disableDefaultUI: true });
         directionsService = new google.maps.DirectionsService();
-        directionsRenderer = new google.maps.DirectionsRenderer({
-            map: map, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 7 }
-        });
-        runnerMarker = new google.maps.Marker({
-            map: map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(30, 30) }
-        });
-        
-        // 초기 로딩 시 날씨 정보 업데이트
-        updateWeather(37.318, 127.110);
+        directionsRenderer = new google.maps.DirectionsRenderer({ map: map, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 7 }});
+        runnerMarker = new google.maps.Marker({ map: map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(30, 30) }});
     }
 
-    // 날씨 API 활용 함수 (Google Maps Geocoding 또는 Weather API 연동용)
-    async function updateWeather(lat, lng) {
-        // 실제 운영 시 Weather API 엔드포인트를 호출합니다. 
-        // 여기서는 위젯 디자인 유지를 위해 실시간 느낌의 시뮬레이션을 수행합니다.
-        const mockTemp = (18 + Math.random() * 5).toFixed(1);
-        document.getElementById('temp-info').innerText = `${mockTemp}°C 구성동`;
+    function setMode(m) {
+        config.mode = m;
+        document.getElementById('btn-walk').className = m === '산책' ? 'option-card active' : 'option-card';
+        document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card';
     }
 
-    function setMode(mode) {
-        config.mode = mode;
-        document.getElementById('btn-walk').className = mode === '산책' ? 'option-card active' : 'option-card';
-        document.getElementById('btn-run').className = mode === '러닝' ? 'option-card active' : 'option-card';
+    function setDist(el, d) {
+        document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        config.dist = d;
     }
 
-    function updateCourse(val) { config.course = val; }
+    async function speak(text) {
+        try {
+            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+                method: "POST",
+                headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
+            });
+            const blob = await res.blob();
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.play();
+        } catch (e) { console.error("음성 재생 실패", e); }
+    }
 
     function startApp() {
+        // 사운드 잠금 해제 (사용자 클릭 시 오디오 초기화)
+        audioPlayer.play().catch(() => {}); 
+        
         navigator.geolocation.getCurrentPosition(pos => {
-            const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             document.getElementById('overlay').style.display = 'none';
             startTime = new Date();
-            
-            drawRoute(myPos, config.course);
+            drawRoute({ lat: pos.coords.latitude, lng: pos.coords.longitude }, config.course);
             startTracking();
-            updateWeather(myPos.lat, myPos.lng);
+            speak(docentScripts[0]);
         });
     }
 
-    function drawRoute(start, endCoord) {
-        const coords = endCoord.split(',').map(Number);
+    function drawRoute(start, endStr) {
+        const coords = endStr.split(',').map(Number);
         directionsService.route({
-            origin: start,
-            destination: { lat: coords[0], lng: coords[1] },
-            travelMode: config.mode === '산책' ? google.maps.TravelMode.WALKING : google.maps.TravelMode.BICYCLING
+            origin: start, destination: { lat: coords[0], lng: coords[1] },
+            travelMode: config.mode === '산책' ? 'WALKING' : 'BICYCLING'
         }, (res, status) => {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(res);
-                document.getElementById('guideText').innerText = "두부가 찾은 주황색 길을 따라가요!";
-            } else {
-                // 경로 안내 보강: 도보 실패 시 드라이빙 모드
-                directionsService.route({
-                    origin: start,
-                    destination: { lat: coords[0], lng: coords[1] },
-                    travelMode: google.maps.TravelMode.DRIVING
-                }, (res2) => directionsRenderer.setDirections(res2));
+            if (status === 'OK') directionsRenderer.setDirections(res);
+            else { // 우회 경로
+                directionsService.route({ origin: start, destination: { lat: coords[0], lng: coords[1] }, travelMode: 'DRIVING' }, (res2) => {
+                    if(res2) directionsRenderer.setDirections(res2);
+                });
             }
         });
     }
@@ -158,13 +161,17 @@
         watchId = navigator.geolocation.watchPosition(pos => {
             const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             runnerMarker.setPosition(p);
-            let s = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
-            document.getElementById('current-speed').innerText = s.toFixed(1);
             
-            if (lastPos) {
-                totalDistance += google.maps.geometry.spherical.computeDistanceBetween(
+            // 🛑 속도 보정: 0.8m/s (약 2.8km/h) 미만은 정지로 판단하여 0 처리
+            let s = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
+            if (s < 2.8) s = 0; 
+            document.getElementById('current-speed').innerText = s.toFixed(1);
+
+            if (lastPos && s > 0) {
+                const d = google.maps.geometry.spherical.computeDistanceBetween(
                     new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
                 );
+                if (d > 3) totalDistance += d; 
             }
             lastPos = p;
         }, null, { enableHighAccuracy: true });
@@ -174,7 +181,7 @@
         navigator.geolocation.clearWatch(watchId);
         const duration = ((new Date() - startTime) / 60000).toFixed(1);
         const distKm = (totalDistance / 1000).toFixed(2);
-        
+        speak(docentScripts[2]);
         document.getElementById('summary-content').innerHTML = `
             <div class="summary-item"><label>시간</label><br><b>${duration}분</b></div>
             <div class="summary-item"><label>거리</label><br><b>${distKm}km</b></div>
