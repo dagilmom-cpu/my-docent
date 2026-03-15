@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - Imjang Run</title>
+    <title>임장런 Pro - 두부와 함께</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
@@ -18,15 +18,15 @@
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
         
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 700; }
+        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: 500; }
+        .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 800; }
 
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
 
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
-        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
+        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,149,0,0.3); }
 
         #map { height: 100vh; width: 100%; }
         #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); }
@@ -52,8 +52,8 @@
 
 <div id="overlay">
     <div class="header-section">
-        <h1>임장런 Imjang Run 🐾</h1>
-        <p>함께 달릴 준비 되셨나요?</p>
+        <h1>임장런 with 두부 🐾</h1>
+        <p>두부와 함께 구성로 90 일대를 분석해봐요!</p>
     </div>
 
     <div class="setup-group">
@@ -76,12 +76,12 @@
 
     <div class="setup-group">
         <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
-        <select id="walkCourse" class="select-style" onchange="config.course = this.value">
+        <select id="walkCourse" class="select-style" onchange="updateCourse(this.value)">
             <option value="37.318,127.112">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
             <option value="37.312,127.116">🌳 마북천 수변 공원 산책 코스</option>
             <option value="37.315,127.106">☕ 구성사거리 상가 & 카페거리 코스</option>
         </select>
-        <select id="runCourse" class="select-style" style="display:none;" onchange="config.course = this.value">
+        <select id="runCourse" class="select-style" style="display:none;" onchange="updateCourse(this.value)">
             <option value="37.321,127.101">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
             <option value="37.324,127.115">⛰️ 언남동 대단지 아파트 정복 코스</option>
             <option value="37.310,127.105">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
@@ -91,37 +91,35 @@
     <div class="setup-group">
         <span class="setup-label">4. 가이드 음성</span>
         <div class="card-grid">
-            <div id="docent-on" class="option-card active" onclick="setDocent('듣기')">친절하게 듣기</div>
+            <div id="docent-on" class="option-card active" onclick="setDocent('듣기')">두부 도슨트 듣기</div>
             <div id="docent-off" class="option-card" onclick="setDocent('조용히')">조용히 걷기</div>
         </div>
     </div>
 
-    <button class="start-btn" onclick="startApp()">고양이와 함께 출발!</button>
+    <button class="start-btn" onclick="startApp()">두부와 함께 출발!</button>
 </div>
 
 <div id="summary-overlay">
     <h1 style="color:var(--primary)">임장 완료! 🐾</h1>
     <div class="summary-grid">
-        <div class="summary-item"><label>운동 시간</label><value id="sum-time">0</value></div>
-        <div class="summary-item"><label>이동 거리</label><value id="sum-dist">0</value></div>
-        <div class="summary-item"><label>소모 칼로리</label><value id="sum-kcal">0</value></div>
-        <div class="summary-item"><label>평균 속도</label><value id="sum-speed">0</value></div>
+        <div class="summary-item"><label>운동 시간</label><value id="sum-time">0분</value></div>
+        <div class="summary-item"><label>이동 거리</label><value id="sum-dist">0km</value></div>
+        <div class="summary-item"><label>소모 칼로리</label><value id="sum-kcal">0kcal</value></div>
+        <div class="summary-item"><label>평균 속도</label><value id="sum-speed">0km/h</value></div>
     </div>
     <button class="start-btn" onclick="location.reload()">새로운 임장 시작</button>
 </div>
-
-<div id="speed-widget">⚡ 현재 속도: <span id="current-speed">0.0</span> km/h</div>
-<div id="weather-widget">🌡️ <span id="weather-info">로딩 중...</span></div>
-
+<div id="speed-widget">⚡ 속도: <span id="current-speed">0.0</span> km/h</div>
+<div id="weather-widget">🌡️ <span id="weather-info">21°C</span></div>
 <div id="map"></div>
 <div class="map-controls">
-    <button id="mapTypeBtn" class="control-btn" onclick="toggleMapType()">🛰️</button>
+    <button class="control-btn" onclick="toggleMapType()">🛰️</button>
     <button class="control-btn" onclick="centerMap()">📍</button>
 </div>
 <div id="panel">
-    <div id="guideTitle">NAVIGATING...</div>
-    <div id="guideText">경로를 탐색하고 있습니다.</div>
-    <button id="finishBtn" class="end-btn" onclick="finishSession()">종료</button>
+    <div id="guideTitle">DUBU NAVI</div>
+    <div id="guideText">두부가 경로를 찾고 있어요!</div>
+    <button class="end-btn" onclick="finishSession()">종료</button>
 </div>
 
 <script>
@@ -132,12 +130,21 @@
     let watchId, startTime;
     let totalDistance = 0, lastPos = null;
     let audioPlayer = new Audio();
+    let docentStep = 0; // 도슨트 진행 단계
+    
     let config = { mode: '산책', dist: 1, docent: '듣기', course: '37.318,127.112' };
+
+    // 도슨트 데이터 (구성로 90 기반)
+    const docentScripts = [
+        "안녕하세요! 저는 두부에요. 지금 계신 구성로 90은 삼호벽산아파트와 스파디움이 만나는 언남동의 핵심축입니다. 플랫폼시티가 완공되면 이곳의 배후 수요는 상상 그 이상이 될 거예요. 자, 두부랑 같이 출발해 볼까요?",
+        "지금 보시는 상가들은 학원과 병원이 밀집해 있죠? 이건 배후에 탄탄한 실거주 수요가 있다는 증거예요. 최근 이 일대 상가 공실률이 낮아지고 있는 점을 주목하세요. 건물이 낡았다고 무시하면 안 돼요, 그만큼 변화의 여지가 크다는 뜻이니까요!",
+        "오른쪽 빌라촌을 보세요. 30가지 데이터에 따르면 이 구역은 도로가 좁아 불편하지만 용인시 도시재생의 핵심 후보지에요. 투자자의 관점에서는 이 낡은 벽돌집들이 미래에 어떤 브랜드 단지로 바뀔지 상상해보는 게 중요해요.",
+        "자, 이제 플랫폼시티 방향을 바라보세요. 이곳은 단순한 아파트 단지가 아니라 삼성전자 반도체 클러스터의 핵심 배후지가 될 거예요. 오늘 두부와 함께한 10분간의 임장이 여러분의 미래 자산에 큰 도움이 되길 바라요! 수고하셨어요!"
+    ];
 
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 37.318, lng: 127.110 }, zoom: 17, disableDefaultUI: true,
-            styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
+            center: { lat: 37.318, lng: 127.110 }, zoom: 16, disableDefaultUI: true
         });
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
@@ -150,11 +157,11 @@
 
     function setMode(mode) {
         config.mode = mode;
-        document.getElementById('btn-walk').classList.toggle('active', mode==='산책');
-        document.getElementById('btn-run').classList.toggle('active', mode==='러닝');
-        document.getElementById('walkCourse').style.display = mode==='산책' ? 'block' : 'none';
-        document.getElementById('runCourse').style.display = mode==='러닝' ? 'block' : 'none';
-        config.course = document.getElementById(mode==='산책'?'walkCourse':'runCourse').value;
+        document.getElementById('btn-walk').classList.toggle('active', mode === '산책');
+        document.getElementById('btn-run').classList.toggle('active', mode === '러닝');
+        document.getElementById('walkCourse').style.display = mode === '산책' ? 'block' : 'none';
+        document.getElementById('runCourse').style.display = mode === '러닝' ? 'block' : 'none';
+        config.course = mode === '산책' ? document.getElementById('walkCourse').value : document.getElementById('runCourse').value;
     }
 
     function setDist(el, d) {
@@ -165,35 +172,106 @@
 
     function setDocent(type) {
         config.docent = type;
-        document.getElementById('docent-on').classList.toggle('active', type==='듣기');
-        document.getElementById('docent-off').classList.toggle('active', type==='조용히');
+        document.getElementById('docent-on').classList.toggle('active', type === '듣기');
+        document.getElementById('docent-off').classList.toggle('active', type === '조용히');
     }
 
+    function updateCourse(val) { config.course = val; }
+
     async function startApp() {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') await audioCtx.resume();
-        
-        navigator.geolocation.getCurrentPosition(pos => {
+        navigator.geolocation.getCurrentPosition(async pos => {
             const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             document.getElementById('overlay').style.display = 'none';
             startTime = new Date();
-            
-            updateWeather(); // 날씨 업데이트
+            updateWeather();
             drawRoute(myPos, config.course);
             startTracking();
             
-            if(config.docent === '듣기') speak("경로 탐색이 완료되었습니다. 고양이와 함께 이동해 볼까요?");
-        }, err => alert("GPS를 켜주세요!"));
+            // 첫 번째 도슨트 즉시 실행
+            if(config.docent === '듣기') {
+                speak(docentScripts[0]);
+                docentStep = 1;
+            }
+        }, err => alert("GPS가 필요해요!"));
     }
 
     function updateWeather() {
-        const temp = 20 + Math.floor(Math.random() * 6); // 20~26도 사이 가변 기온
-        document.getElementById('weather-info').innerText = `구성동 🌤️ ${temp}°C`;
+        const temp = 18 + Math.floor(Math.random() * 8); 
+        document.getElementById('weather-info').innerText = `${temp}°C`;
     }
 
     function drawRoute(start, endCoord) {
-        const [lat, lng] = endCoord.split(',').map(Number);
+        const coords = endCoord.split(',').map(Number);
         directionsService.route({
             origin: start,
-            destination: { lat, lng }, // 좌표 기반으로 목적지 강제 지정
-            travelMode: config.mode === '산책' ? 'WAL
+            destination: { lat: coords[0], lng: coords[1] },
+            travelMode: config.mode === '산책' ? 'WALKING' : 'BICYCLING'
+        }, (res, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(res);
+                document.getElementById('guideText').innerText = "두부를 따라 목적지까지 걸어보세요!";
+                map.fitBounds(res.routes[0].bounds);
+            }
+        });
+    }
+
+    function startTracking() {
+        watchId = navigator.geolocation.watchPosition(pos => {
+            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            runnerMarker.setPosition(p);
+            
+            let s = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
+            if (s < 1.2) s = 0; 
+            document.getElementById('current-speed').innerText = s.toFixed(1);
+
+            if (lastPos) {
+                const d = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
+                );
+                if (d > 2) {
+                    totalDistance += d;
+                    // 300m 이동할 때마다 다음 도슨트 실행
+                    if (totalDistance > docentStep * 300 && docentStep < docentScripts.length) {
+                        speak(docentScripts[docentStep]);
+                        docentStep++;
+                    }
+                }
+            }
+            lastPos = p;
+        }, null, { enableHighAccuracy: true });
+    }
+
+    async function speak(text) {
+        if(config.docent === '조용히') return;
+        try {
+            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+                method: "POST",
+                headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
+            });
+            const blob = await res.blob();
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.play();
+        } catch (e) {}
+    }
+
+    function finishSession() {
+        navigator.geolocation.clearWatch(watchId);
+        const duration = ((new Date() - startTime) / 60000).toFixed(1);
+        const distKm = (totalDistance / 1000).toFixed(2);
+        document.getElementById('sum-time').innerText = duration + "분";
+        document.getElementById('sum-dist').innerText = distKm + "km";
+        document.getElementById('sum-kcal').innerText = (distKm * 60).toFixed(0) + "kcal";
+        document.getElementById('sum-speed').innerText = (distKm / (duration/60) || 0).toFixed(1) + "km/h";
+        document.getElementById('summary-overlay').style.display = 'flex';
+    }
+
+    function centerMap() { map.panTo(runnerMarker.getPosition()); }
+    function toggleMapType() {
+        const type = map.getMapTypeId() === 'roadmap' ? 'hybrid' : 'roadmap';
+        map.setMapTypeId(type);
+    }
+    window.onload = initMap;
+</script>
+</body>
+</html>
