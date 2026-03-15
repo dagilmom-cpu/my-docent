@@ -8,8 +8,7 @@
     <style>
         :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
         body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
-
-        /* 설정 화면 */
+        
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
         .header-section { margin-bottom: 25px; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
@@ -26,15 +25,12 @@
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
 
-        .select-style {
-            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee;
-            background-color: #fff; font-size: 0.95rem; appearance: none; outline: none; cursor: pointer;
-        }
-
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
 
         /* 메인 UI */
         #map { height: 100vh; width: 100%; }
+        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); }
         #panel { position: absolute; bottom: 0; width: 100%; height: 160px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         #guideText { font-size: 1rem; font-weight: 600; line-height: 1.5; color: var(--dark); }
@@ -54,42 +50,47 @@
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
-            <div class="option-card active" onclick="selectOpt(this, 'mode')">🚶 여유로운 산책</div>
-            <div class="option-card" onclick="selectOpt(this, 'mode')">🏃 시원한 러닝</div>
+            <div id="btn-walk" class="option-card active" onclick="setMode('산책')">🚶 여유로운 산책</div>
+            <div id="btn-run" class="option-card" onclick="setMode('러닝')">🏃 시원한 러닝</div>
         </div>
     </div>
 
     <div class="setup-group">
         <span class="setup-label">2. 목표 거리</span>
         <div class="dist-grid">
-            <div class="dist-card active" onclick="updateDistance(this, 1)">1km</div>
-            <div class="dist-card" onclick="updateDistance(this, 3)">3km</div>
-            <div class="dist-card" onclick="updateDistance(this, 5)">5km</div>
-            <div class="dist-card" onclick="updateDistance(this, 10)">10km</div>
+            <div class="dist-card active" onclick="setDist(this, 1)">1km</div>
+            <div class="dist-card" onclick="setDist(this, 3)">3km</div>
+            <div class="dist-card" onclick="setDist(this, 5)">5km</div>
+            <div class="dist-card" onclick="setDist(this, 10)">10km</div>
         </div>
     </div>
 
     <div class="setup-group">
         <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
-        <select id="courseSelect" class="select-style" onchange="config.course = this.value">
-            <option value="A">📍 동네 대장 아파트 탐방 코스</option>
-            <option value="B">🌳 초록초록 공원 산책 코스</option>
-            <option value="C">🏦 활기찬 상가 거리 분석 코스</option>
-            <option value="D">🏗️ 미래가 기대되는 호재 코스</option>
+        <select id="walkCourse" class="select-style" onchange="config.course = this.value">
+            <option value="W1">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
+            <option value="W2">🌳 마북천 수변 공원 산책 코스</option>
+            <option value="W3">☕ 구성사거리 상가 & 카페거리 코스</option>
+        </select>
+        <select id="runCourse" class="select-style" style="display:none;" onchange="config.course = this.value">
+            <option value="R1">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
+            <option value="R2">⛰️ 언남동 대단지 아파트 정복 코스</option>
+            <option value="R3">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
         </select>
     </div>
 
     <div class="setup-group">
         <span class="setup-label">4. 가이드 음성</span>
         <div class="card-grid">
-            <div class="option-card active" onclick="selectOpt(this, 'docent')">친절하게 듣기</div>
-            <div class="option-card" onclick="selectOpt(this, 'docent')">조용히 걷기</div>
+            <div class="option-card active" onclick="setDocent(this, '듣기')">친절하게 듣기</div>
+            <div class="option-card" onclick="setDocent(this, '조용히')">조용히 걷기</div>
         </div>
     </div>
 
     <button class="start-btn" onclick="startApp()">고양이와 함께 출발!</button>
 </div>
 
+<div id="weather-widget">☀️ 구성동 맑음 21°C</div>
 <div id="map"></div>
 <div class="map-controls">
     <button id="mapTypeBtn" class="control-btn" onclick="toggleMapType()">🛰️</button>
@@ -101,44 +102,55 @@
 </div>
 
 <script>
-    const ELEVEN_API = "6de3761d943fe084486efb94676a26daab9fc28640b57951";
+    const ELEVEN_API = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
     const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
+    
     let map, runnerMarker;
     let points = [];
     let announced = new Set();
     let audioPlayer = new Audio();
     const myHome = { lat: 37.3200, lng: 127.1100 };
-    let config = { mode: '🚶 여유로운 산책', dist: 1, docent: '친절하게 듣기', course: 'A' };
+    let config = { mode: '산책', dist: 1, docent: '듣기', course: 'W1' };
 
-    function selectOpt(el, type) {
-        const siblings = el.parentElement.children;
-        for (let s of siblings) s.classList.remove('active');
-        el.classList.add('active');
-        config[type] = el.innerText;
+    // 1. 드롭다운 전환 함수 (확실한 물리적 제어)
+    function setMode(mode) {
+        config.mode = mode;
+        const wBtn = document.getElementById('btn-walk');
+        const rBtn = document.getElementById('btn-run');
+        const wSelect = document.getElementById('walkCourse');
+        const rSelect = document.getElementById('runCourse');
+
+        if(mode === '산책') {
+            wBtn.classList.add('active'); rBtn.classList.remove('active');
+            wSelect.style.display = 'block'; rSelect.style.display = 'none';
+            config.course = wSelect.value;
+        } else {
+            rBtn.classList.add('active'); wBtn.classList.remove('active');
+            rSelect.style.display = 'block'; wSelect.style.display = 'none';
+            config.course = rSelect.value;
+        }
     }
 
-    function updateDistance(el, d) {
-        const siblings = el.parentElement.children;
-        for (let s of siblings) s.classList.remove('active');
+    function setDist(el, d) {
+        document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
         config.dist = d;
     }
 
+    function setDocent(el, type) {
+        el.parentElement.querySelectorAll('.option-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        config.docent = type;
+    }
+
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
-            center: myHome,
-            zoom: 17,
-            disableDefaultUI: true,
+            center: myHome, zoom: 17, disableDefaultUI: true,
             styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
         });
         runnerMarker = new google.maps.Marker({
-            position: myHome,
-            map: map,
-            icon: {
-                url: "https://cdn-icons-png.flaticon.com/512/616/616430.png",
-                scaledSize: new google.maps.Size(30, 30),
-                anchor: new google.maps.Point(15, 15)
-            }
+            position: myHome, map: map,
+            icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(30, 30), anchor: new google.maps.Point(15, 15) }
         });
     }
 
@@ -149,40 +161,48 @@
     }
 
     async function startApp() {
+        // [소리 해결] 사용자가 클릭한 직후 오디오 컨텍스트와 스피커 강제 활성화
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') await audioCtx.resume();
-        
+        audioPlayer.play().catch(() => {}); // 무음 트리거
+
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            document.getElementById('overlay').style.transform = 'translateY(-100%)';
+            document.getElementById('overlay').style.display = 'none';
             map.setCenter(myPos);
             runnerMarker.setPosition(myPos);
             createLocalData(myPos); 
             startGPS();
             
-            const startMsg = `오늘 날씨 좋은데요? 선택하신 코스로 임장런을 시작해 볼게요. 제가 옆에서 꼼꼼히 설명해 드릴게요!`;
+            // 날씨 멘트 추가
+            const startMsg = "현재 구성동은 맑고 선선한 21도입니다. 임장하기 완벽한 날씨네요! 도슨트를 시작합니다.";
             document.getElementById("guideText").innerText = startMsg;
-            if(config.docent.includes('듣기')) speak(startMsg);
+            if(config.docent === '듣기') speak(startMsg);
         }, (err) => {
-            document.getElementById('overlay').style.transform = 'translateY(-100%)';
+            document.getElementById('overlay').style.display = 'none';
             createLocalData(myHome);
+            startGPS();
         }, { enableHighAccuracy: true });
     }
 
     function createLocalData(basePos) {
-        const categories = ["아파트 단지", "상가 거리", "오피스텔", "동네 산책로"];
-        const softTexts = [
-            "요즘 이쪽 아파트들이 인기가 정말 많아요. 평당 시세가 꽤 올랐는데 실거래가 궁금하시죠?",
-            "이 거리는 유동 인구가 정말 많아서 상가 수익률이 꽤 짭짤한 편이에요. 투자로 눈여겨보세요!",
-            "저기 보이는 건물은 용인역 호재가 직접 닿는 곳이에요. 앞으로 가치가 더 기대되는 걸요?",
-            "여기는 동네 주민들이 참 좋아하는 곳이에요. 주거 쾌적성 하나는 보장된 곳이랍니다."
-        ];
+        points = [];
+        const courseMap = {
+            'W1': { spots: ["언남동 빌라촌", "구성동 노후주택가"], desc: "이곳 빌라들은 대지지분이 넓어 미래 가치가 높습니다." },
+            'W2': { spots: ["마북천 산책로", "연원마을 수변로"], desc: "수변 공원이 잘 정비되어 주거 쾌적성이 최고인 지역입니다." },
+            'W3': { spots: ["구성사거리 학원가", "근생 상가건물"], desc: "공실이 없는 튼튼한 상권입니다. 임대 수익을 눈여겨보세요." },
+            'R1': { spots: ["탄천 직선코스", "보정역 탄천길"], desc: "플랫폼시티 부지가 한눈에 보이는 핵심 러닝 코스입니다." },
+            'R2': { spots: ["벽산아파트 단지", "삼성래미안 언덕길"], desc: "GTX 구성역 호재를 품은 이 동네 대장 아파트들입니다." },
+            'R3': { spots: ["플랫폼시티 공사현장", "구성역 2번출구"], desc: "용인의 미래, 플랫폼시티의 규모를 직접 느껴보세요." }
+        };
+        const current = courseMap[config.course] || courseMap['W1'];
         for (let i = 0; i < 30; i++) {
+            const spotName = current.spots[i % current.spots.length];
             points.push({
                 id: 'p'+i,
-                lat: basePos.lat + (Math.random()-0.5)*0.008,
-                lng: basePos.lng + (Math.random()-0.5)*0.008,
-                text: `지금 지나시는 ${categories[i%4]}에 대해 살짝 알려드릴게요. ${softTexts[i%4]}`
+                lat: basePos.lat + (Math.random()-0.5)*0.012,
+                lng: basePos.lng + (Math.random()-0.5)*0.012,
+                text: `지금 ${spotName} 근처입니다. ${current.desc}`
             });
         }
     }
@@ -192,8 +212,8 @@
             const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             runnerMarker.setPosition(p);
             map.panTo(p);
-            if(config.docent.includes('듣기')) checkDistance(p);
-        }, null, { enableHighAccuracy: true, maximumAge: 0 });
+            if(config.docent === '듣기') checkDistance(p);
+        }, null, { enableHighAccuracy: true });
     }
 
     function checkDistance(p) {
@@ -214,19 +234,19 @@
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
                 method: "POST",
                 headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
-                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
+                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.5, similarity_boost: 0.75 } })
             });
+            if (!res.ok) return;
             const blob = await res.blob();
             audioPlayer.src = URL.createObjectURL(blob);
             audioPlayer.play();
-        } catch (e) {}
+        } catch (e) { console.error("음성 오류:", e); }
     }
 
     function centerMap() {
         const pos = runnerMarker.getPosition();
         if (pos) map.panTo(pos);
     }
-
     window.onload = initMap;
 </script>
 </body>
