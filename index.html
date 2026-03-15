@@ -30,7 +30,7 @@
 
         /* 메인 UI */
         #map { height: 100vh; width: 100%; }
-        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); display: flex; align-items: center; gap: 8px; }
+        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
         
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
@@ -39,7 +39,7 @@
         
         .end-btn { width: 100%; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; }
 
-        /* 요약 대시보드 모달 */
+        /* 요약 대시보드 */
         #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin: 30px 0; }
         .summary-item { background: var(--light); padding: 20px; border-radius: 20px; text-align: center; }
@@ -54,15 +54,15 @@
 
 <div id="overlay">
     <div class="header-section">
-        <h1>임장런 Imjang Run 🐾 Pro</h1>
-        <p>네비게이션과 분석을 동시에</p>
+        <h1>임장런 Imjang Run 🐾</h1>
+        <p>함께 달릴 준비 되셨나요?</p>
     </div>
 
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
-            <div id="btn-walk" class="option-card active" onclick="setMode('산책')">🚶 산책 (4.5km/h)</div>
-            <div id="btn-run" class="option-card" onclick="setMode('러닝')">🏃 러닝 (6.0km/h)</div>
+            <div id="btn-walk" class="option-card active" onclick="setMode('산책')">🚶 여유로운 산책</div>
+            <div id="btn-run" class="option-card" onclick="setMode('러닝')">🏃 시원한 러닝</div>
         </div>
     </div>
 
@@ -90,7 +90,15 @@
         </select>
     </div>
 
-    <button class="start-btn" onclick="startApp()">고양이 네비게이션 출발!</button>
+    <div class="setup-group">
+        <span class="setup-label">4. 가이드 음성</span>
+        <div class="card-grid">
+            <div id="docent-on" class="option-card active" onclick="setDocent('듣기')">친절하게 듣기</div>
+            <div id="docent-off" class="option-card" onclick="setDocent('조용히')">조용히 걷기</div>
+        </div>
+    </div>
+
+    <button class="start-btn" onclick="startApp()">고양이와 함께 출발!</button>
 </div>
 
 <div id="summary-overlay">
@@ -102,11 +110,11 @@
         <div class="summary-item"><label>소모 칼로리</label><value id="sum-kcal">0 kcal</value></div>
         <div class="summary-item"><label>평균 속도</label><value id="sum-speed">0.0 km/h</value></div>
     </div>
-    <button class="start-btn" onclick="location.reload()">다시 시작하기</button>
+    <button class="start-btn" onclick="location.reload()">새로운 임장 시작</button>
 </div>
 
 <div id="speed-widget">⚡ 현재 속도: <span id="current-speed">0.0</span> km/h</div>
-<div id="weather-widget">🌡️ <span id="weather-info">로딩 중...</span></div>
+<div id="weather-widget">☀️ 구성동 맑음 21°C</div>
 
 <div id="map"></div>
 <div class="map-controls">
@@ -115,7 +123,7 @@
 </div>
 <div id="panel">
     <div id="guideTitle">NAVIGATING...</div>
-    <div id="guideText">경로를 계산하고 있습니다. 잠시만 기다려주세요!</div>
+    <div id="guideText">경로를 계산하고 있습니다. <br>잠시만 기다려주세요!</div>
     <button id="finishBtn" class="end-btn" onclick="finishSession()">종료</button>
 </div>
 
@@ -126,7 +134,6 @@
     let map, runnerMarker, directionsService, directionsRenderer;
     let watchId, startTime;
     let totalDistance = 0, lastPos = null;
-    let announced = new Set();
     let audioPlayer = new Audio();
     let config = { mode: '산책', dist: 1, docent: '듣기', course: '언남동 빌라촌' };
 
@@ -137,7 +144,7 @@
         });
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
-            map: map, suppressMarkers: false, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 6 }
+            map: map, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 6 }
         });
         runnerMarker = new google.maps.Marker({
             map: map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(40, 40) }
@@ -151,13 +158,18 @@
         document.getElementById('walkCourse').style.display = mode==='산책' ? 'block' : 'none';
         document.getElementById('runCourse').style.display = mode==='러닝' ? 'block' : 'none';
         config.course = document.getElementById(mode==='산책'?'walkCourse':'runCourse').value;
-        document.getElementById('finishBtn').innerText = mode + " 종료";
     }
 
     function setDist(el, d) {
         document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
         config.dist = d;
+    }
+
+    function setDocent(type) {
+        config.docent = type;
+        document.getElementById('docent-on').classList.toggle('active', type==='듣기');
+        document.getElementById('docent-off').classList.toggle('active', type==='조용히');
     }
 
     async function startApp() {
@@ -169,36 +181,29 @@
             document.getElementById('overlay').style.display = 'none';
             startTime = new Date();
             
-            // 1. 네비게이션 가이드 시작
             drawRoute(myPos, config.course);
-            // 2. 날씨 업데이트 (위치 기반)
-            updateWeather(myPos);
-            // 3. 트래킹 시작
             startTracking();
             
-            speak("임장런 네비게이션을 시작합니다. 안전하게 이동해 주세요.");
+            if(config.docent === '듣기') speak("임장런을 시작합니다. 경로를 안내해 드릴게요.");
         }, err => alert("GPS를 허용해주세요."));
     }
 
     function drawRoute(start, endName) {
         directionsService.route({
             origin: start,
-            destination: endName, // 텍스트 기반 목적지 검색 지원
+            destination: endName,
             travelMode: config.mode === '산책' ? 'WALKING' : 'BICYCLING'
         }, (res, status) => {
             if (status === 'OK') {
                 directionsRenderer.setDirections(res);
                 const distText = res.routes[0].legs[0].distance.text;
-                document.getElementById('guideText').innerText = `${endName}까지 약 ${distText} 경로를 안내합니다.`;
+                document.getElementById('guideText').innerHTML = `<b>${endName}</b>까지 ${distText}<br>네비게이션을 따라 이동하세요!`;
+                const bounds = res.routes[0].bounds;
+                map.fitBounds(bounds);
+            } else {
+                document.getElementById('guideText').innerText = "경로를 찾을 수 없습니다.";
             }
         });
-    }
-
-    function updateWeather(pos) {
-        // 실제 API 연동 전, 위치 기반 고도화된 목업 (실제 연동 시 OpenWeather API 사용 가능)
-        const hour = new Date().getHours();
-        const temp = hour > 18 || hour < 7 ? "18°C" : "23°C";
-        document.getElementById('weather-info').innerText = `구성동 맑음 ${temp}`;
     }
 
     function startTracking() {
@@ -206,17 +211,9 @@
             const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             runnerMarker.setPosition(p);
             
-            // 속도 계산 (km/h)
             let speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : "0.0";
-            if(speed === "0.0" && lastPos) { // GPS 속도 미지원 시 보정
-                const d = google.maps.geometry.spherical.computeDistanceBetween(
-                    new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
-                );
-                if(d > 2) speed = "4.2"; // 보행 시뮬레이션
-            }
             document.getElementById('current-speed').innerText = speed;
 
-            // 거리 누적
             if (lastPos) {
                 totalDistance += google.maps.geometry.spherical.computeDistanceBetween(
                     new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
@@ -226,19 +223,25 @@
         }, null, { enableHighAccuracy: true });
     }
 
+    // [음악 재생 최적화 버전] speak 함수
     async function speak(text) {
+        if(config.docent === '조용히') return;
         try {
-            // Audio Ducking: 설명 시작 시 기존 오디오가 있다면 음량이 조절되는 느낌을 줍니다.
-            // (브라우저 정책상 타 앱 제어는 어렵지만 현재 앱 내 사운드는 제어 가능)
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
                 method: "POST",
                 headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
                 body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
             });
             const blob = await res.blob();
+            
+            // 기존 가이드 음성 중지
+            audioPlayer.pause();
             audioPlayer.src = URL.createObjectURL(blob);
+            
+            // 시스템 오디오 포커스를 받기 위한 재생 (노래 볼륨 조절 유도)
             audioPlayer.play();
-        } catch (e) { console.error(e); }
+            
+        } catch (e) { console.error("음성 재생 오류:", e); }
     }
 
     function finishSession() {
@@ -247,16 +250,15 @@
         const durationMin = ((endTime - startTime) / 60000).toFixed(1);
         const finalDistKm = (totalDistance / 1000).toFixed(2);
         const kcal = (config.mode === '산책' ? finalDistKm * 50 : finalDistKm * 75).toFixed(0);
-        const avgSpeed = (finalDistKm / (durationMin / 60)).toFixed(1);
+        const avgSpeed = finalDistKm > 0 ? (finalDistKm / (durationMin / 60)).toFixed(1) : 0;
 
         document.getElementById('sum-time').innerText = `${durationMin} 분`;
         document.getElementById('sum-dist').innerText = `${finalDistKm} km`;
         document.getElementById('sum-kcal').innerText = `${kcal} kcal`;
         document.getElementById('sum-speed').innerText = `${avgSpeed} km/h`;
-        document.getElementById('summary-type').innerText = `${config.mode} 완료 리포트`;
         
         document.getElementById('summary-overlay').style.display = 'flex';
-        speak(`${config.mode}을 종료합니다. 오늘 정말 고생 많으셨어요!`);
+        if(config.docent === '듣기') speak("수고하셨습니다. 임장 결과를 확인해 보세요.");
     }
 
     function centerMap() {
