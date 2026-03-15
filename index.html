@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>임장런 Pro - 두부와 함께</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAEv1KJWnD-z0wBAgr5nLR-jxjpA-D8g7I&libraries=geometry,places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CJuddR6QNbyf2kMt0GF8XogwanaFz9Q&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
         body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
@@ -31,7 +31,6 @@
 
         /* 메인 UI */
         #map { height: 100vh; width: 100%; }
-        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
         
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
@@ -55,7 +54,7 @@
 <div id="overlay">
     <div class="header-section">
         <h1>임장런 with 두부 🐾</h1>
-        <p>구성로 90 일대를 분석하며 달려볼까요?</p>
+        <p>구성로 90 일대를 두부와 함께 정복해봐요!</p>
     </div>
 
     <div class="setup-group">
@@ -102,15 +101,15 @@
 </div>
 
 <div id="speed-widget">⚡ 속도: <span id="current-speed">0.0</span> km/h</div>
-<div id="weather-widget">🌡️ <span id="weather-info">23°C</span></div>
 <div id="map"></div>
 <div class="map-controls">
     <button class="control-btn" onclick="toggleMapType()">🛰️</button>
     <button class="control-btn" onclick="centerMap()">📍</button>
 </div>
+
 <div id="panel">
     <div id="guideTitle">DUBU NAVI</div>
-    <div id="guideText">두부가 지도를 펼치고 있어요!</div>
+    <div id="guideText">두부가 지도를 확인하고 있어요!</div>
     <button class="end-btn" onclick="finishSession()">종료</button>
 </div>
 
@@ -132,8 +131,8 @@
     let config = { mode: '산책', dist: 1, docent: '듣기', course: '37.318,127.112' };
 
     const docentScripts = [
-        "두부 등장! 구성로 90 임장을 시작할게요. 이곳은 플랫폼시티의 직접적인 수혜지인 삼호벽산이 있는 곳이죠. 자, 저를 따라오세요!",
-        "지금 지나는 상권의 공실률은 매우 낮아요. 배후 수요가 탄탄하다는 뜻이죠. 두부랑 같이 분석하니까 재밌죠?",
+        "두부 등장! 구성로 90 임장을 시작할게요. 이곳은 플랫폼시티의 핵심 수혜지인 삼호벽산이 있는 곳이죠. 자, 저를 따라오세요!",
+        "지금 지나는 상가들의 업종을 보세요. 학원이 많다는 건 실거주 수요가 탄탄하다는 뜻이죠. 두부랑 같이 분석하니까 재밌죠?",
         "저기 낡은 빌라촌은 미래의 금싸라기 땅이에요. 용인시 재생 사업의 핵심지니까 눈여겨보세요!",
         "오늘 임장 끝! 두부와 함께한 정보들이 큰 도움이 되길 바라요. 다음에 또 만나요!"
     ];
@@ -180,7 +179,6 @@
             document.getElementById('overlay').style.display = 'none';
             startTime = new Date();
             
-            // 경로 안내 실행
             drawRoute(myPos, config.course);
             startTracking();
             
