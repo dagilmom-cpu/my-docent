@@ -7,79 +7,263 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4CJuddR6QNbyf2kMt0GF8XogwanaFz9Q&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
-        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; }
+        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
         
-        #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; }
-        .start-btn { margin-top: auto; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
+        /* 설정 레이어 */
+        #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        .header-section { margin-bottom: 25px; }
+        .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        .header-section p { color: var(--gray); margin-top: 5px; font-size: 0.95rem; }
 
-        #map { height: 100vh; width: 100%; background: #eee; } /* 지도가 안 나올 때 회색으로 표시 */
-        #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-size: 0.8rem; }
+        .setup-group { margin-bottom: 20px; }
+        .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
         
-        #panel { position: absolute; bottom: 0; width: 100%; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-sizing: border-box; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
-        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); min-height: 50px; }
+        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: 500; }
+        .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 800; }
+
+        .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .dist-card.active { background: var(--primary); color: white; }
+
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
+        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,149,0,0.3); }
+
+        /* 메인 지도 UI */
+        #map { height: 100vh; width: 100%; }
+        #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
+        
+        #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
+        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; }
+        
+        .end-btn { width: 100%; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; }
+
+        /* 임장 종료 요약 레이어 */
+        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin: 30px 0; }
+        .summary-item { background: var(--light); padding: 20px; border-radius: 20px; text-align: center; }
+        .summary-item label { display: block; font-size: 0.8rem; color: var(--gray); margin-bottom: 5px; }
+        .summary-item value { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
+
+        .map-controls { position: absolute; right: 20px; bottom: 200px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
+        .control-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <h1 style="color:var(--primary)">임장런 with 두부 🐾</h1>
-    <p>지도가 나오지 않는다면 아래를 확인해 주세요:<br>
-       1. 구글 콘솔에서 <b>Maps SDK for JS</b> 활성화<br>
-       2. 구글 콘솔에서 <b>결제 계정</b> 연결</p>
-    <button class="start-btn" onclick="startApp()">두부와 임장 시작하기</button>
+    <div class="header-section">
+        <h1>임장런 with 두부 🐾</h1>
+        <p>구성로 90 일대를 두부와 함께 정복해봐요!</p>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">1. 오늘 나의 템포</span>
+        <div class="card-grid">
+            <div id="btn-walk" class="option-card active" onclick="setMode('산책')">🚶 여유로운 산책</div>
+            <div id="btn-run" class="option-card" onclick="setMode('러닝')">🏃 시원한 러닝</div>
+        </div>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">2. 목표 거리</span>
+        <div class="dist-grid">
+            <div class="dist-card active" onclick="setDist(this, 1)">1km</div>
+            <div class="dist-card" onclick="setDist(this, 3)">3km</div>
+            <div class="dist-card" onclick="setDist(this, 5)">5km</div>
+            <div class="dist-card" onclick="setDist(this, 10)">10km</div>
+        </div>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
+        <select id="walkCourse" class="select-style" onchange="updateCourse(this.value)">
+            <option value="37.318,127.112">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
+            <option value="37.312,127.116">🌳 마북천 수변 공원 산책 코스</option>
+            <option value="37.315,127.106">☕ 구성사거리 상가 & 카페거리 코스</option>
+        </select>
+        <select id="runCourse" class="select-style" style="display:none;" onchange="updateCourse(this.value)">
+            <option value="37.321,127.101">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
+            <option value="37.324,127.115">⛰️ 언남동 대단지 아파트 정복 코스</option>
+            <option value="37.310,127.105">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
+        </select>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">4. 가이드 음성</span>
+        <div class="card-grid">
+            <div id="docent-on" class="option-card active" onclick="setDocent('듣기')">두부 도슨트 듣기</div>
+            <div id="docent-off" class="option-card" onclick="setDocent('조용히')">조용히 걷기</div>
+        </div>
+    </div>
+
+    <button class="start-btn" onclick="startApp()">두부와 함께 출발!</button>
 </div>
 
 <div id="speed-widget">⚡ 속도: <span id="current-speed">0.0</span> km/h</div>
 <div id="map"></div>
+<div class="map-controls">
+    <button class="control-btn" onclick="toggleMapType()">🛰️</button>
+    <button class="control-btn" onclick="centerMap()">📍</button>
+</div>
+
 <div id="panel">
-    <div id="guideText">두부가 지도를 불러오는 중입니다...</div>
+    <div id="guideTitle">DUBU NAVI</div>
+    <div id="guideText">두부가 지도를 확인하고 있어요!</div>
+    <button class="end-btn" onclick="finishSession()">종료</button>
+</div>
+
+<div id="summary-overlay">
+    <h1 style="color:var(--primary)">임장 완료! 🐾</h1>
+    <div class="summary-grid" id="summary-content"></div>
+    <button class="start-btn" onclick="location.reload()">새로운 임장 시작</button>
 </div>
 
 <script>
+    const ELEVEN_API = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
+    const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
+    
     let map, runnerMarker, directionsService, directionsRenderer;
+    let watchId, startTime;
     let totalDistance = 0, lastPos = null;
     let audioPlayer = new Audio();
+    let docentStep = 0; 
     
-    // 지도가 로드되지 않았을 때 에러 메시지를 화면에 뿌려주는 함수
-    window.gm_authFailure = function() {
-        const msg = "구글 맵 인증 실패! (결제 수단이나 API 활성화를 확인해주세요)";
-        document.getElementById('guideText').innerText = msg;
-        alert(msg);
-    };
+    let config = { mode: '산책', dist: 1, docent: '듣기', course: '37.318,127.112' };
+
+    // 구성로 90 기반 도슨트 멘트
+    const docentScripts = [
+        "두부 등장! 구성로 90 임장을 시작할게요. 이곳은 플랫폼시티의 수혜지인 삼호벽산과 스파디움이 만나는 언남동의 핵심축입니다. 자, 저만 믿고 따라오세요!",
+        "지금 보시는 상가들은 학원과 병원이 밀집해 있죠? 이건 배후에 탄탄한 실거주 수요가 있다는 증거예요. 건물 노후도보다 상가의 활력을 눈여겨보세요!",
+        "오른쪽 빌라촌을 보세요. 도로가 좁아 불편하지만 용인시 도시재생의 핵심 후보지에요. 투자자의 관점에서는 이 낡은 집들이 미래에 어떻게 변할지 상상하는 게 중요하답니다.",
+        "마지막 포인트! 플랫폼시티 부지를 바라보세요. 이곳은 삼성전자 반도체 클러스터와 연결되는 거대한 경제 중심지가 될 거예요. 오늘 두부와 함께한 임장, 유익하셨나요? 수고하셨어요!"
+    ];
 
     function initMap() {
-        try {
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 37.318, lng: 127.110 }, 
-                zoom: 16,
-                disableDefaultUI: false // 테스트를 위해 UI를 잠시 켭니다
-            });
-            directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({ map: map });
-            
-            runnerMarker = new google.maps.Marker({
-                map: map,
-                position: { lat: 37.318, lng: 127.110 },
-                icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(40, 40) }
-            });
-            document.getElementById('guideText').innerText = "지도가 성공적으로 로드되었습니다! 🐾";
-        } catch (e) {
-            document.getElementById('guideText').innerText = "에러 발생: " + e.message;
-        }
-    }
-
-    function startApp() {
-        document.getElementById('overlay').style.display = 'none';
-        navigator.geolocation.getCurrentPosition(pos => {
-            const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            map.setCenter(myPos);
-            runnerMarker.setPosition(myPos);
-            document.getElementById('guideText').innerText = "임장을 시작합니다. 두부를 따라오세요!";
-        }, err => {
-            document.getElementById('guideText').innerText = "GPS를 켜주셔야 내 위치가 지도에 나옵니다.";
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 37.318, lng: 127.110 }, zoom: 16, disableDefaultUI: true
+        });
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            map: map, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 7 }
+        });
+        runnerMarker = new google.maps.Marker({
+            map: map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(45, 45) }
         });
     }
 
+    function setMode(mode) {
+        config.mode = mode;
+        document.getElementById('btn-walk').className = mode === '산책' ? 'option-card active' : 'option-card';
+        document.getElementById('btn-run').className = mode === '러닝' ? 'option-card active' : 'option-card';
+        document.getElementById('walkCourse').style.display = mode === '산책' ? 'block' : 'none';
+        document.getElementById('runCourse').style.display = mode === '러닝' ? 'block' : 'none';
+        config.course = mode === '산책' ? document.getElementById('walkCourse').value : document.getElementById('runCourse').value;
+    }
+
+    function setDist(el, d) {
+        document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        config.dist = d;
+    }
+
+    function setDocent(type) {
+        config.docent = type;
+        document.getElementById('docent-on').classList.toggle('active', type === '듣기');
+        document.getElementById('docent-off').classList.toggle('active', type === '조용히');
+    }
+
+    function updateCourse(val) { config.course = val; }
+
+    async function startApp() {
+        navigator.geolocation.getCurrentPosition(async pos => {
+            const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            document.getElementById('overlay').style.display = 'none';
+            startTime = new Date();
+            
+            drawRoute(myPos, config.course);
+            startTracking();
+            
+            if(config.docent === '듣기') {
+                speak(docentScripts[0]);
+                docentStep = 1;
+            }
+        }, err => alert("GPS가 필요해요!"));
+    }
+
+    function drawRoute(start, endCoord) {
+        const coords = endCoord.split(',').map(Number);
+        directionsService.route({
+            origin: start,
+            destination: { lat: coords[0], lng: coords[1] },
+            travelMode: config.mode === '산책' ? 'WALKING' : 'BICYCLING'
+        }, (res, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(res);
+                document.getElementById('guideText').innerText = "두부를 따라 목적지까지 이동해보세요!";
+            }
+        });
+    }
+
+    function startTracking() {
+        watchId = navigator.geolocation.watchPosition(pos => {
+            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            runnerMarker.setPosition(p);
+            
+            let s = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
+            if (s < 1.0) s = 0; 
+            document.getElementById('current-speed').innerText = s.toFixed(1);
+
+            if (lastPos) {
+                const d = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
+                );
+                if (d > 2.5) {
+                    totalDistance += d;
+                    // 300m 이동할 때마다 다음 도슨트 실행
+                    if (totalDistance > docentStep * 300 && docentStep < docentScripts.length) {
+                        speak(docentScripts[docentStep]);
+                        docentStep++;
+                    }
+                }
+            }
+            lastPos = p;
+        }, null, { enableHighAccuracy: true });
+    }
+
+    async function speak(text) {
+        if(config.docent === '조용히') return;
+        try {
+            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+                method: "POST",
+                headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
+            });
+            const blob = await res.blob();
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.play();
+        } catch (e) {}
+    }
+
+    function finishSession() {
+        navigator.geolocation.clearWatch(watchId);
+        const duration = ((new Date() - startTime) / 60000).toFixed(1);
+        const distKm = (totalDistance / 1000).toFixed(2);
+        
+        document.getElementById('summary-content').innerHTML = `
+            <div class="summary-item"><label>임장 시간</label><value>${duration}분</value></div>
+            <div class="summary-item"><label>이동 거리</label><value>${distKm}km</value></div>
+            <div class="summary-item"><label>소모 칼로리</label><value>${(distKm*65).toFixed(0)}kcal</value></div>
+            <div class="summary-item"><label>평균 속도</label><value>${(distKm/(duration/60)||0).toFixed(1)}km/h</value></div>
+        `;
+        document.getElementById('summary-overlay').style.display = 'flex';
+    }
+
+    function centerMap() { map.panTo(runnerMarker.getPosition()); }
+    function toggleMapType() {
+        map.setMapTypeId(map.getMapTypeId() === 'roadmap' ? 'hybrid' : 'roadmap');
+    }
     window.onload = initMap;
 </script>
 </body>
