@@ -28,7 +28,6 @@
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
 
-        /* 메인 UI */
         #map { height: 100vh; width: 100%; }
         #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
@@ -39,7 +38,6 @@
         
         .end-btn { width: 100%; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; }
 
-        /* 요약 대시보드 */
         #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin: 30px 0; }
         .summary-item { background: var(--light); padding: 20px; border-radius: 20px; text-align: center; }
@@ -79,14 +77,14 @@
     <div class="setup-group">
         <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
         <select id="walkCourse" class="select-style" onchange="config.course = this.value">
-            <option value="용인시 기흥구 언남동">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
-            <option value="마북천 공원">🌳 마북천 수변 공원 산책 코스</option>
-            <option value="구성역 상업지구">☕ 구성사거리 상가 & 카페거리 코스</option>
+            <option value="37.318,127.112">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
+            <option value="37.312,127.116">🌳 마북천 수변 공원 산책 코스</option>
+            <option value="37.315,127.106">☕ 구성사거리 상가 & 카페거리 코스</option>
         </select>
         <select id="runCourse" class="select-style" style="display:none;" onchange="config.course = this.value">
-            <option value="보정역 탄천길">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
-            <option value="언남동 삼성래미안 2차">⛰️ 언남동 대단지 아파트 정복 코스</option>
-            <option value="용인 플랫폼시티 부지">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
+            <option value="37.321,127.101">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
+            <option value="37.324,127.115">⛰️ 언남동 대단지 아파트 정복 코스</option>
+            <option value="37.310,127.105">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
         </select>
     </div>
 
@@ -103,12 +101,11 @@
 
 <div id="summary-overlay">
     <h1 style="color:var(--primary)">임장 완료! 🐾</h1>
-    <p id="summary-type">운동 결과 리포트</p>
     <div class="summary-grid">
-        <div class="summary-item"><label>운동 시간</label><value id="sum-time">00:00</value></div>
-        <div class="summary-item"><label>이동 거리</label><value id="sum-dist">0.0 km</value></div>
-        <div class="summary-item"><label>소모 칼로리</label><value id="sum-kcal">0 kcal</value></div>
-        <div class="summary-item"><label>평균 속도</label><value id="sum-speed">0.0 km/h</value></div>
+        <div class="summary-item"><label>운동 시간</label><value id="sum-time">0</value></div>
+        <div class="summary-item"><label>이동 거리</label><value id="sum-dist">0</value></div>
+        <div class="summary-item"><label>소모 칼로리</label><value id="sum-kcal">0</value></div>
+        <div class="summary-item"><label>평균 속도</label><value id="sum-speed">0</value></div>
     </div>
     <button class="start-btn" onclick="location.reload()">새로운 임장 시작</button>
 </div>
@@ -123,7 +120,7 @@
 </div>
 <div id="panel">
     <div id="guideTitle">NAVIGATING...</div>
-    <div id="guideText">경로를 찾고 있습니다. <br>GPS를 수신 중입니다...</div>
+    <div id="guideText">경로를 탐색하고 있습니다.</div>
     <button id="finishBtn" class="end-btn" onclick="finishSession()">종료</button>
 </div>
 
@@ -135,11 +132,11 @@
     let watchId, startTime;
     let totalDistance = 0, lastPos = null;
     let audioPlayer = new Audio();
-    let config = { mode: '산책', dist: 1, docent: '듣기', course: '용인시 기흥구 언남동' };
+    let config = { mode: '산책', dist: 1, docent: '듣기', course: '37.318,127.112' };
 
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 37.3200, lng: 127.1100 }, zoom: 17, disableDefaultUI: true,
+            center: { lat: 37.318, lng: 127.110 }, zoom: 17, disableDefaultUI: true,
             styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
         });
         directionsService = new google.maps.DirectionsService();
@@ -181,108 +178,22 @@
             document.getElementById('overlay').style.display = 'none';
             startTime = new Date();
             
-            updateWeather(myPos); // 날씨 실시간 업데이트 호출
+            updateWeather(); // 날씨 업데이트
             drawRoute(myPos, config.course);
             startTracking();
             
-            if(config.docent === '듣기') speak("임장런을 시작합니다. 목표 코스로 안내할게요!");
-        }, err => alert("GPS 수신에 실패했습니다. 위치 권한을 확인해주세요."));
+            if(config.docent === '듣기') speak("경로 탐색이 완료되었습니다. 고양이와 함께 이동해 볼까요?");
+        }, err => alert("GPS를 켜주세요!"));
     }
 
-    // 날씨 실시간 업데이트 로직 (API 키 없을 때를 대비한 시간 기반 보정 포함)
-    function updateWeather(pos) {
-        // 실제 OpenWeather API 연동 시 아래 주석 해제 후 키 입력
-        // fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${pos.lat}&lon=${pos.lng}&units=metric&appid=YOUR_KEY`)
-        
-        const now = new Date();
-        const hour = now.getHours();
-        // 간단한 시간대별 기온 시뮬레이션 (21도 고정 탈출!)
-        let baseTemp = (hour > 6 && hour < 16) ? 24 : 19; 
-        let currentTemp = baseTemp + Math.floor(Math.random() * 3);
-        
-        document.getElementById('weather-info').innerText = `구성동 🌤️ ${currentTemp}°C`;
+    function updateWeather() {
+        const temp = 20 + Math.floor(Math.random() * 6); // 20~26도 사이 가변 기온
+        document.getElementById('weather-info').innerText = `구성동 🌤️ ${temp}°C`;
     }
 
-    function drawRoute(start, endName) {
+    function drawRoute(start, endCoord) {
+        const [lat, lng] = endCoord.split(',').map(Number);
         directionsService.route({
             origin: start,
-            destination: endName,
-            travelMode: config.mode === '산책' ? 'WALKING' : 'BICYCLING'
-        }, (res, status) => {
-            if (status === 'OK') {
-                directionsRenderer.setDirections(res);
-                const distText = res.routes[0].legs[0].distance.text;
-                document.getElementById('guideText').innerHTML = `<b>${endName}</b> 코스 진입 중<br>거리: ${distText}`;
-                map.fitBounds(res.routes[0].bounds);
-            } else {
-                document.getElementById('guideText').innerText = "경로를 탐색할 수 없습니다. 계속 이동해주세요.";
-            }
-        });
-    }
-
-    function startTracking() {
-        watchId = navigator.geolocation.watchPosition(pos => {
-            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            runnerMarker.setPosition(p);
-            
-            // 속도 필터링: 0.5km/h 이하의 미세한 움직임은 정지로 판단 (0으로 표시)
-            let rawSpeed = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
-            let filteredSpeed = rawSpeed < 0.8 ? 0.0 : rawSpeed; 
-            
-            document.getElementById('current-speed').innerText = filteredSpeed.toFixed(1);
-
-            if (lastPos) {
-                const d = google.maps.geometry.spherical.computeDistanceBetween(
-                    new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
-                );
-                if (d > 1) totalDistance += d; // 1m 이상의 유의미한 이동만 기록
-            }
-            lastPos = p;
-        }, null, { enableHighAccuracy: true, maximumAge: 1000 });
-    }
-
-    async function speak(text) {
-        if(config.docent === '조용히') return;
-        try {
-            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
-                method: "POST",
-                headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
-                body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
-            });
-            const blob = await res.blob();
-            audioPlayer.pause();
-            audioPlayer.src = URL.createObjectURL(blob);
-            audioPlayer.play();
-        } catch (e) { console.error("음성 재생 실패"); }
-    }
-
-    function finishSession() {
-        navigator.geolocation.clearWatch(watchId);
-        const durationMin = ((new Date() - startTime) / 60000).toFixed(1);
-        const finalDistKm = (totalDistance / 1000).toFixed(2);
-        const kcal = (config.mode === '산책' ? finalDistKm * 52 : finalDistKm * 78).toFixed(0);
-        const avgSpeed = finalDistKm > 0 ? (finalDistKm / (durationMin / 60)).toFixed(1) : 0;
-
-        document.getElementById('sum-time').innerText = `${durationMin} 분`;
-        document.getElementById('sum-dist').innerText = `${finalDistKm} km`;
-        document.getElementById('sum-kcal').innerText = `${kcal} kcal`;
-        document.getElementById('sum-speed').innerText = `${avgSpeed} km/h`;
-        
-        document.getElementById('summary-overlay').style.display = 'flex';
-        if(config.docent === '듣기') speak("임장을 무사히 마쳤습니다. 대단해요!");
-    }
-
-    function centerMap() {
-        const pos = runnerMarker.getPosition();
-        if (pos) map.panTo(pos);
-    }
-    
-    function toggleMapType() {
-        const current = map.getMapTypeId();
-        map.setMapTypeId(current === 'roadmap' ? 'hybrid' : 'roadmap');
-    }
-
-    window.onload = initMap;
-</script>
-</body>
-</html>
+            destination: { lat, lng }, // 좌표 기반으로 목적지 강제 지정
+            travelMode: config.mode === '산책' ? 'WAL
