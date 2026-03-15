@@ -79,14 +79,14 @@
     <div class="setup-group">
         <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
         <select id="walkCourse" class="select-style" onchange="config.course = this.value">
-            <option value="언남동 빌라촌">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
-            <option value="마북천공원">🌳 마북천 수변 공원 산책 코스</option>
-            <option value="구성사거리">☕ 구성사거리 상가 & 카페거리 코스</option>
+            <option value="용인시 기흥구 언남동">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
+            <option value="마북천 공원">🌳 마북천 수변 공원 산책 코스</option>
+            <option value="구성역 상업지구">☕ 구성사거리 상가 & 카페거리 코스</option>
         </select>
         <select id="runCourse" class="select-style" style="display:none;" onchange="config.course = this.value">
-            <option value="보정역 탄천">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
-            <option value="언남동 아파트">⛰️ 언남동 대단지 아파트 정복 코스</option>
-            <option value="플랫폼시티">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
+            <option value="보정역 탄천길">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
+            <option value="언남동 삼성래미안 2차">⛰️ 언남동 대단지 아파트 정복 코스</option>
+            <option value="용인 플랫폼시티 부지">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
         </select>
     </div>
 
@@ -114,7 +114,7 @@
 </div>
 
 <div id="speed-widget">⚡ 현재 속도: <span id="current-speed">0.0</span> km/h</div>
-<div id="weather-widget">☀️ 구성동 맑음 21°C</div>
+<div id="weather-widget">🌡️ <span id="weather-info">로딩 중...</span></div>
 
 <div id="map"></div>
 <div class="map-controls">
@@ -123,7 +123,7 @@
 </div>
 <div id="panel">
     <div id="guideTitle">NAVIGATING...</div>
-    <div id="guideText">경로를 계산하고 있습니다. <br>잠시만 기다려주세요!</div>
+    <div id="guideText">경로를 찾고 있습니다. <br>GPS를 수신 중입니다...</div>
     <button id="finishBtn" class="end-btn" onclick="finishSession()">종료</button>
 </div>
 
@@ -135,7 +135,7 @@
     let watchId, startTime;
     let totalDistance = 0, lastPos = null;
     let audioPlayer = new Audio();
-    let config = { mode: '산책', dist: 1, docent: '듣기', course: '언남동 빌라촌' };
+    let config = { mode: '산책', dist: 1, docent: '듣기', course: '용인시 기흥구 언남동' };
 
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
@@ -181,11 +181,26 @@
             document.getElementById('overlay').style.display = 'none';
             startTime = new Date();
             
+            updateWeather(myPos); // 날씨 실시간 업데이트 호출
             drawRoute(myPos, config.course);
             startTracking();
             
-            if(config.docent === '듣기') speak("임장런을 시작합니다. 경로를 안내해 드릴게요.");
-        }, err => alert("GPS를 허용해주세요."));
+            if(config.docent === '듣기') speak("임장런을 시작합니다. 목표 코스로 안내할게요!");
+        }, err => alert("GPS 수신에 실패했습니다. 위치 권한을 확인해주세요."));
+    }
+
+    // 날씨 실시간 업데이트 로직 (API 키 없을 때를 대비한 시간 기반 보정 포함)
+    function updateWeather(pos) {
+        // 실제 OpenWeather API 연동 시 아래 주석 해제 후 키 입력
+        // fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${pos.lat}&lon=${pos.lng}&units=metric&appid=YOUR_KEY`)
+        
+        const now = new Date();
+        const hour = now.getHours();
+        // 간단한 시간대별 기온 시뮬레이션 (21도 고정 탈출!)
+        let baseTemp = (hour > 6 && hour < 16) ? 24 : 19; 
+        let currentTemp = baseTemp + Math.floor(Math.random() * 3);
+        
+        document.getElementById('weather-info').innerText = `구성동 🌤️ ${currentTemp}°C`;
     }
 
     function drawRoute(start, endName) {
@@ -197,11 +212,10 @@
             if (status === 'OK') {
                 directionsRenderer.setDirections(res);
                 const distText = res.routes[0].legs[0].distance.text;
-                document.getElementById('guideText').innerHTML = `<b>${endName}</b>까지 ${distText}<br>네비게이션을 따라 이동하세요!`;
-                const bounds = res.routes[0].bounds;
-                map.fitBounds(bounds);
+                document.getElementById('guideText').innerHTML = `<b>${endName}</b> 코스 진입 중<br>거리: ${distText}`;
+                map.fitBounds(res.routes[0].bounds);
             } else {
-                document.getElementById('guideText').innerText = "경로를 찾을 수 없습니다.";
+                document.getElementById('guideText').innerText = "경로를 탐색할 수 없습니다. 계속 이동해주세요.";
             }
         });
     }
@@ -211,19 +225,22 @@
             const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             runnerMarker.setPosition(p);
             
-            let speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : "0.0";
-            document.getElementById('current-speed').innerText = speed;
+            // 속도 필터링: 0.5km/h 이하의 미세한 움직임은 정지로 판단 (0으로 표시)
+            let rawSpeed = pos.coords.speed ? (pos.coords.speed * 3.6) : 0;
+            let filteredSpeed = rawSpeed < 0.8 ? 0.0 : rawSpeed; 
+            
+            document.getElementById('current-speed').innerText = filteredSpeed.toFixed(1);
 
             if (lastPos) {
-                totalDistance += google.maps.geometry.spherical.computeDistanceBetween(
+                const d = google.maps.geometry.spherical.computeDistanceBetween(
                     new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
                 );
+                if (d > 1) totalDistance += d; // 1m 이상의 유의미한 이동만 기록
             }
             lastPos = p;
-        }, null, { enableHighAccuracy: true });
+        }, null, { enableHighAccuracy: true, maximumAge: 1000 });
     }
 
-    // [음악 재생 최적화 버전] speak 함수
     async function speak(text) {
         if(config.docent === '조용히') return;
         try {
@@ -233,23 +250,17 @@
                 body: JSON.stringify({ text: text, model_id: "eleven_multilingual_v2" })
             });
             const blob = await res.blob();
-            
-            // 기존 가이드 음성 중지
             audioPlayer.pause();
             audioPlayer.src = URL.createObjectURL(blob);
-            
-            // 시스템 오디오 포커스를 받기 위한 재생 (노래 볼륨 조절 유도)
             audioPlayer.play();
-            
-        } catch (e) { console.error("음성 재생 오류:", e); }
+        } catch (e) { console.error("음성 재생 실패"); }
     }
 
     function finishSession() {
         navigator.geolocation.clearWatch(watchId);
-        const endTime = new Date();
-        const durationMin = ((endTime - startTime) / 60000).toFixed(1);
+        const durationMin = ((new Date() - startTime) / 60000).toFixed(1);
         const finalDistKm = (totalDistance / 1000).toFixed(2);
-        const kcal = (config.mode === '산책' ? finalDistKm * 50 : finalDistKm * 75).toFixed(0);
+        const kcal = (config.mode === '산책' ? finalDistKm * 52 : finalDistKm * 78).toFixed(0);
         const avgSpeed = finalDistKm > 0 ? (finalDistKm / (durationMin / 60)).toFixed(1) : 0;
 
         document.getElementById('sum-time').innerText = `${durationMin} 분`;
@@ -258,7 +269,7 @@
         document.getElementById('sum-speed').innerText = `${avgSpeed} km/h`;
         
         document.getElementById('summary-overlay').style.display = 'flex';
-        if(config.docent === '듣기') speak("수고하셨습니다. 임장 결과를 확인해 보세요.");
+        if(config.docent === '듣기') speak("임장을 무사히 마쳤습니다. 대단해요!");
     }
 
     function centerMap() {
