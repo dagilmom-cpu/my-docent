@@ -8,45 +8,32 @@
     <style>
         :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
         body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
-        
-        /* 설정 레이어 */
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
         .header-section { margin-bottom: 25px; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
         .header-section p { color: var(--gray); margin-top: 5px; font-size: 0.95rem; }
-
         .setup-group { margin-bottom: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
-        
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.95rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 800; }
-
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
-
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,149,0,0.3); }
-
-        /* 메인 UI */
         #map { height: 100vh; width: 100%; }
         #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; line-height: 1.4; }
-        
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; height: 3em; overflow: hidden; }
-        
         .end-btn { width: 100%; padding: 18px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; cursor: pointer; }
-
-        /* 결과 요약 */
         #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 20px 0; }
         .summary-item { background: var(--light); padding: 15px; border-radius: 20px; text-align: center; }
         .summary-item label { display: block; font-size: 0.75rem; color: var(--gray); margin-bottom: 5px; }
         .summary-item value { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
-
         .map-controls { position: absolute; right: 20px; bottom: 200px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
         .control-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; display: flex; align-items: center; justify-content: center; }
     </style>
@@ -79,16 +66,8 @@
 
     <div class="setup-group">
         <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
-        <select id="walkCourse" class="select-style" onchange="App.config.course=this.value">
-            <option value="37.318,127.112">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
-            <option value="37.312,127.116">🌳 마북천 수변 공원 산책 코스</option>
-            <option value="37.315,127.106">☕ 구성사거리 상가 & 카페거리 코스</option>
-        </select>
-        <select id="runCourse" class="select-style" style="display:none;" onchange="App.config.course=this.value">
-            <option value="37.321,127.101">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
-            <option value="37.324,127.115">⛰️ 언남동 대단지 아파트 정복 코스</option>
-            <option value="37.310,127.105">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
-        </select>
+        <select id="walkCourse" class="select-style" onchange="App.updateCourse(this.value)"></select>
+        <select id="runCourse" class="select-style" style="display:none;" onchange="App.updateCourse(this.value)"></select>
     </div>
 
     <div class="setup-group">
@@ -123,10 +102,24 @@
 
 <script>
 /**
- * 사운드 피드백 모듈
+ * 프로토타입용 코스 데이터 모듈
  */
+const CourseData = {
+    '걷기': {
+        1: { name: "🏡 노후 빌라촌 골목 탐방", dest: "37.318,127.112", waypts: ["37.319,127.114"] },
+        3: { name: "🌳 마북천 수변 산책로", dest: "37.312,127.116", waypts: ["37.315,127.118", "37.310,127.115"] },
+        5: { name: "☕ 구성 상권 핵심 코스", dest: "37.315,127.106", waypts: ["37.320,127.108", "37.310,127.102"] },
+        10: { name: "🏗️ 플랫폼시티 부지 답사", dest: "37.310,127.105", waypts: ["37.305,127.100", "37.295,127.110"] }
+    },
+    '러닝': {
+        1: { name: "⚡ 숏-스프린트 구성역 코스", dest: "37.311,127.105", waypts: ["37.315,127.108"] },
+        3: { name: "🏃 탄천 지류 하천 코스", dest: "37.321,127.101", waypts: ["37.318,127.105"] },
+        5: { name: "🔥 언남동 아파트 단지 정복", dest: "37.324,127.115", waypts: ["37.330,127.120", "37.320,127.110"] },
+        10: { name: "🏅 용인 시내 연계 챌린지", dest: "37.330,127.100", waypts: ["37.340,127.110", "37.320,127.090"] }
+    }
+};
+
 const SoundModule = {
-    // 짧고 경쾌한 클릭음 (Base64 형식으로 내장하여 로딩 지연 방지)
     playClick() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
@@ -157,15 +150,25 @@ const MapModule = {
             map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(30, 30) }
         });
     },
-    drawRoute(start, endStr, mode) {
-        const coords = endStr.split(',').map(Number);
+    drawRoute(start, courseObj, mode) {
+        if (!courseObj) return;
+        const destArr = courseObj.dest.split(',').map(Number);
+        const wps = courseObj.waypts.map(p => ({
+            location: new google.maps.LatLng(...p.split(',').map(Number)),
+            stopover: false
+        }));
+
         this.svc.route({
-            origin: start, destination: { lat: coords[0], lng: coords[1] },
+            origin: start,
+            destination: { lat: destArr[0], lng: destArr[1] },
+            waypoints: wps,
+            optimizeWaypoints: true,
             travelMode: mode === '러닝' ? 'BICYCLING' : 'WALKING'
         }, (res, status) => {
             if (status === 'OK') {
                 this.rend.setDirections(res);
-                document.getElementById('guideText').innerHTML = `<b>경로 안내 시작</b><br>거리: 약 ${res.routes[0].legs[0].distance.text}`;
+                const totalMeters = res.routes[0].legs.reduce((acc, leg) => acc + leg.distance.value, 0);
+                document.getElementById('guideText').innerHTML = `<b>${courseObj.name}</b><br>총 예상 거리: ${(totalMeters/1000).toFixed(1)}km`;
             }
         });
     },
@@ -204,10 +207,28 @@ const InfoModule = {
 };
 
 const App = {
-    config: { mode: '걷기', dist: 1, docent: '듣기', course: '37.318,127.112' },
+    config: { mode: '걷기', dist: 1, docent: '듣기', course: null },
     state: { watchId: null, startTime: null, totalDist: 0, lastPos: null, step: 0 },
 
-    init() { MapModule.init(); },
+    init() { 
+        MapModule.init(); 
+        this.renderCourseOptions();
+    },
+
+    renderCourseOptions() {
+        const walkSel = document.getElementById('walkCourse');
+        const runSel = document.getElementById('runCourse');
+        walkSel.innerHTML = ""; runSel.innerHTML = "";
+        
+        // 데이터 기반으로 셀렉트 박스 채우기
+        Object.entries(CourseData['걷기']).forEach(([d, obj]) => {
+            walkSel.innerHTML += `<option value="${d}">${obj.name}</option>`;
+        });
+        Object.entries(CourseData['러닝']).forEach(([d, obj]) => {
+            runSel.innerHTML += `<option value="${d}">${obj.name}</option>`;
+        });
+        this.updateCourse(walkSel.value);
+    },
 
     setMode(m) {
         SoundModule.playClick();
@@ -218,7 +239,8 @@ const App = {
         document.getElementById('runCourse').style.display = m === '러닝' ? 'block' : 'none';
         document.getElementById('mode-text').innerText = m;
         document.getElementById('finish-btn').innerText = m + " 종료";
-        this.config.course = m === '걷기' ? document.getElementById('walkCourse').value : document.getElementById('runCourse').value;
+        const val = m === '걷기' ? document.getElementById('walkCourse').value : document.getElementById('runCourse').value;
+        this.updateCourse(val);
     },
 
     setDist(el, d) {
@@ -226,6 +248,14 @@ const App = {
         document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
         this.config.dist = d;
+        // 거리 클릭 시 해당 거리에 맞는 코스로 셀렉트박스 자동 변경
+        if (this.config.mode === '걷기') document.getElementById('walkCourse').value = d;
+        else document.getElementById('runCourse').value = d;
+        this.updateCourse(d);
+    },
+
+    updateCourse(distKey) {
+        this.config.course = CourseData[this.config.mode][distKey];
     },
 
     setDocent(t) {
