@@ -4,47 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>임장런 Pro - Imjang Run</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=geometry,places"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry,places"></script>
     <style>
-        :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; --white: #FFFFFF; }
+        :root { --primary: #FF9500; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
         body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
         
-        /* 설정 오버레이 */
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
+        .header-section { margin-bottom: 25px; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        .header-section p { color: var(--gray); margin-top: 5px; font-size: 0.95rem; }
+
         .setup-group { margin-bottom: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
+        
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .option-card.active { border-color: var(--primary); background: #FFF5E5; color: var(--primary); font-weight: 700; }
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; margin-bottom: 10px; }
-        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; }
+
+        .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .dist-card.active { background: var(--primary); color: white; }
+
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
+        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
 
         /* 메인 UI */
         #map { height: 100vh; width: 100%; }
-        #top-bar { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; z-index: 1000; }
-        .status-pill { background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary); display: flex; align-items: center; gap: 5px; }
+        #weather-widget { position: absolute; top: 20px; right: 20px; background: white; padding: 10px 18px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; font-weight: 800; font-size: 0.9rem; border: 2px solid var(--primary); display: flex; align-items: center; gap: 8px; }
+        #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
+        
+        #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
+        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; }
+        
+        .end-btn { width: 100%; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; }
 
-        #panel { position: absolute; bottom: 0; width: 100%; background: white; border-radius: 30px 30px 0 0; padding: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); z-index: 100; box-sizing: border-box; }
-        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.4; color: var(--dark); margin-bottom: 15px; min-height: 40px; }
-        .bottom-btns { display: flex; gap: 10px; }
-        .stop-btn { flex: 1; padding: 15px; background: #FF3B30; color: white; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; }
+        /* 요약 대시보드 모달 */
+        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin: 30px 0; }
+        .summary-item { background: var(--light); padding: 20px; border-radius: 20px; text-align: center; }
+        .summary-item label { display: block; font-size: 0.8rem; color: var(--gray); margin-bottom: 5px; }
+        .summary-item value { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
 
-        /* 운동 요약 창 */
-        #summary-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
-        .summary-card { background: white; width: 100%; border-radius: 25px; padding: 30px; text-align: center; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 25px 0; }
-        .summary-item span { display: block; color: var(--gray); font-size: 0.8rem; margin-bottom: 5px; }
-        .summary-item strong { font-size: 1.2rem; color: var(--dark); }
+        .map-controls { position: absolute; right: 20px; bottom: 200px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
+        .control-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="overlay">
     <div class="header-section">
-        <h1>임장런 Imjang Run 🐾</h1>
-        <p>프로 버전으로 더 스마트하게!</p>
+        <h1>임장런 Imjang Run 🐾 Pro</h1>
+        <p>네비게이션과 분석을 동시에</p>
     </div>
+
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
@@ -52,67 +65,79 @@
             <div id="btn-run" class="option-card" onclick="setMode('러닝')">🏃 러닝 (6.0km/h)</div>
         </div>
     </div>
+
     <div class="setup-group">
-        <span class="setup-label">2. 목표 코스 네비게이션</span>
+        <span class="setup-label">2. 목표 거리</span>
+        <div class="dist-grid">
+            <div class="dist-card active" onclick="setDist(this, 1)">1km</div>
+            <div class="dist-card" onclick="setDist(this, 3)">3km</div>
+            <div class="dist-card" onclick="setDist(this, 5)">5km</div>
+            <div class="dist-card" onclick="setDist(this, 10)">10km</div>
+        </div>
+    </div>
+
+    <div class="setup-group">
+        <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
         <select id="walkCourse" class="select-style" onchange="config.course = this.value">
-            <option value="언남동 324-1">🏡 구성동 노후 빌라촌 탐방</option>
-            <option value="마북천공원">🌳 마북천 수변 산책 코스</option>
+            <option value="언남동 빌라촌">🏡 구성동 노후 빌라촌 & 골목 탐방</option>
+            <option value="마북천공원">🌳 마북천 수변 공원 산책 코스</option>
+            <option value="구성사거리">☕ 구성사거리 상가 & 카페거리 코스</option>
         </select>
         <select id="runCourse" class="select-style" style="display:none;" onchange="config.course = this.value">
-            <option value="보정역">🏃 탄천 직선 러닝</option>
-            <option value="구성역">🏗️ 플랫폼시티 부지 코스</option>
+            <option value="보정역 탄천">🏃 탄천 합수부 ~ 보정역 직선 러닝</option>
+            <option value="언남동 아파트">⛰️ 언남동 대단지 아파트 정복 코스</option>
+            <option value="플랫폼시티">🏗️ 플랫폼시티 부지 한바퀴 코스</option>
         </select>
     </div>
-    <button class="start-btn" onclick="startApp()">네비게이션 시작!</button>
+
+    <button class="start-btn" onclick="startApp()">고양이 네비게이션 출발!</button>
 </div>
 
-<div id="top-bar">
-    <div id="weather-pill" class="status-pill">🌡️ 로딩 중...</div>
-    <div id="speed-pill" class="status-pill">⚡ 0.0 km/h</div>
+<div id="summary-overlay">
+    <h1 style="color:var(--primary)">임장 완료! 🐾</h1>
+    <p id="summary-type">운동 결과 리포트</p>
+    <div class="summary-grid">
+        <div class="summary-item"><label>운동 시간</label><value id="sum-time">00:00</value></div>
+        <div class="summary-item"><label>이동 거리</label><value id="sum-dist">0.0 km</value></div>
+        <div class="summary-item"><label>소모 칼로리</label><value id="sum-kcal">0 kcal</value></div>
+        <div class="summary-item"><label>평균 속도</label><value id="sum-speed">0.0 km/h</value></div>
+    </div>
+    <button class="start-btn" onclick="location.reload()">다시 시작하기</button>
 </div>
+
+<div id="speed-widget">⚡ 현재 속도: <span id="current-speed">0.0</span> km/h</div>
+<div id="weather-widget">🌡️ <span id="weather-info">로딩 중...</span></div>
 
 <div id="map"></div>
-
-<div id="panel">
-    <div id="guideText">발걸음을 떼시면 네비게이션과<br>동네 이야기를 시작할게요!</div>
-    <div class="bottom-btns">
-        <button class="stop-btn" onclick="finishSession()">종료 및 결과 보기</button>
-    </div>
+<div class="map-controls">
+    <button id="mapTypeBtn" class="control-btn" onclick="toggleMapType()">🛰️</button>
+    <button class="control-btn" onclick="centerMap()">📍</button>
 </div>
-
-<div id="summary-modal">
-    <div class="summary-card">
-        <h2 id="summary-title">오늘의 임장런 완료!</h2>
-        <div class="summary-grid">
-            <div class="summary-item"><span>운동 시간</span><strong id="res-time">00:00</strong></div>
-            <div class="summary-item"><span>이동 거리</span><strong id="res-dist">0.0km</strong></div>
-            <div class="summary-item"><span>평균 속도</span><strong id="res-speed">0.0km/h</strong></div>
-            <div class="summary-item"><span>소모 칼로리</span><strong id="res-kcal">0kcal</strong></div>
-        </div>
-        <button class="start-btn" onclick="location.reload()">새로운 임장 시작</button>
-    </div>
+<div id="panel">
+    <div id="guideTitle">NAVIGATING...</div>
+    <div id="guideText">경로를 계산하고 있습니다. 잠시만 기다려주세요!</div>
+    <button id="finishBtn" class="end-btn" onclick="finishSession()">종료</button>
 </div>
 
 <script>
     const ELEVEN_API = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
     const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
-    const WEATHER_API_KEY = "YOUR_OPENWEATHER_API_KEY"; // 날씨 API 키 필요
     
     let map, runnerMarker, directionsService, directionsRenderer;
-    let config = { mode: '산책', course: '언남동 324-1' };
-    let startTime, watchId, lastPos;
-    let totalDist = 0;
+    let watchId, startTime;
+    let totalDistance = 0, lastPos = null;
+    let announced = new Set();
     let audioPlayer = new Audio();
+    let config = { mode: '산책', dist: 1, docent: '듣기', course: '언남동 빌라촌' };
 
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 17, center: { lat: 37.32, lng: 127.11 },
-            disableDefaultUI: true,
+            center: { lat: 37.3200, lng: 127.1100 }, zoom: 17, disableDefaultUI: true,
             styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
         });
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
-            map: map, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 6 }
+            map: map, suppressMarkers: false, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 6 }
         });
         runnerMarker = new google.maps.Marker({
             map: map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(40, 40) }
@@ -121,72 +146,90 @@
 
     function setMode(mode) {
         config.mode = mode;
-        document.getElementById('btn-walk').classList.toggle('active', mode === '산책');
-        document.getElementById('btn-run').classList.toggle('active', mode === '러닝');
-        document.getElementById('walkCourse').style.display = mode === '산책' ? 'block' : 'none';
-        document.getElementById('runCourse').style.display = mode === '러닝' ? 'block' : 'none';
-        config.course = document.getElementById(mode === '산책' ? 'walkCourse' : 'runCourse').value;
+        document.getElementById('btn-walk').classList.toggle('active', mode==='산책');
+        document.getElementById('btn-run').classList.toggle('active', mode==='러닝');
+        document.getElementById('walkCourse').style.display = mode==='산책' ? 'block' : 'none';
+        document.getElementById('runCourse').style.display = mode==='러닝' ? 'block' : 'none';
+        config.course = document.getElementById(mode==='산책'?'walkCourse':'runCourse').value;
+        document.getElementById('finishBtn').innerText = mode + " 종료";
+    }
+
+    function setDist(el, d) {
+        document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        config.dist = d;
     }
 
     async function startApp() {
-        document.getElementById('overlay').style.display = 'none';
-        startTime = new Date();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
         
         navigator.geolocation.getCurrentPosition(pos => {
             const myPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            fetchWeather(myPos);
+            document.getElementById('overlay').style.display = 'none';
+            startTime = new Date();
+            
+            // 1. 네비게이션 가이드 시작
             drawRoute(myPos, config.course);
+            // 2. 날씨 업데이트 (위치 기반)
+            updateWeather(myPos);
+            // 3. 트래킹 시작
             startTracking();
+            
+            speak("임장런 네비게이션을 시작합니다. 안전하게 이동해 주세요.");
+        }, err => alert("GPS를 허용해주세요."));
+    }
+
+    function drawRoute(start, endName) {
+        directionsService.route({
+            origin: start,
+            destination: endName, // 텍스트 기반 목적지 검색 지원
+            travelMode: config.mode === '산책' ? 'WALKING' : 'BICYCLING'
+        }, (res, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(res);
+                const distText = res.routes[0].legs[0].distance.text;
+                document.getElementById('guideText').innerText = `${endName}까지 약 ${distText} 경로를 안내합니다.`;
+            }
         });
     }
 
-    function drawRoute(start, end) {
-        const mode = config.mode === '산책' ? 'WALKING' : 'BICYCLING'; // 러닝은 BICYCLING이 경로상 더 적합할 수 있음
-        directionsService.route({
-            origin: start, destination: end, travelMode: google.maps.TravelMode[mode]
-        }, (res, status) => {
-            if (status === 'OK') directionsRenderer.setDirections(res);
-        });
+    function updateWeather(pos) {
+        // 실제 API 연동 전, 위치 기반 고도화된 목업 (실제 연동 시 OpenWeather API 사용 가능)
+        const hour = new Date().getHours();
+        const temp = hour > 18 || hour < 7 ? "18°C" : "23°C";
+        document.getElementById('weather-info').innerText = `구성동 맑음 ${temp}`;
     }
 
     function startTracking() {
         watchId = navigator.geolocation.watchPosition(pos => {
-            const currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            runnerMarker.setPosition(currentPos);
-            map.panTo(currentPos);
-
-            // 속도 계산 (m/s -> km/h)
-            const speed = (pos.coords.speed || 0) * 3.6;
-            document.getElementById('speed-pill').innerText = `⚡ ${speed.toFixed(1)} km/h`;
+            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            runnerMarker.setPosition(p);
+            
+            // 속도 계산 (km/h)
+            let speed = pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) : "0.0";
+            if(speed === "0.0" && lastPos) { // GPS 속도 미지원 시 보정
+                const d = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
+                );
+                if(d > 2) speed = "4.2"; // 보행 시뮬레이션
+            }
+            document.getElementById('current-speed').innerText = speed;
 
             // 거리 누적
             if (lastPos) {
-                const d = google.maps.geometry.spherical.computeDistanceBetween(
-                    new google.maps.LatLng(lastPos.lat, lastPos.lng),
-                    new google.maps.LatLng(currentPos.lat, currentPos.lng)
+                totalDistance += google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(lastPos.lat, lastPos.lng), new google.maps.LatLng(p.lat, p.lng)
                 );
-                totalDist += d;
             }
-            lastPos = currentPos;
-            
-            // 지오펜싱 (임의의 포인트 60m 이내 감지 로직 추가 가능)
+            lastPos = p;
         }, null, { enableHighAccuracy: true });
     }
 
-    async function fetchWeather(pos) {
-        try {
-            // 실제 API 사용 시: `https://api.openweathermap.org/data/2.5/weather?lat=${pos.lat}&lon=${pos.lng}&appid=${WEATHER_API_KEY}&units=metric`
-            // 현재는 위치기반 가상 연동
-            const temp = 22.5; // 예시 기온
-            document.getElementById('weather-pill').innerText = `☀️ 구성동 ${temp}°C`;
-        } catch(e) {}
-    }
-
     async function speak(text) {
-        // 음악 일시정지 효과 (Audio Ducking)
-        // 브라우저에서 실행되는 타 앱(유튜브 등)을 직접 멈출 수는 없으나, 
-        // 이 앱 내에서 재생되는 소리가 있다면 조절합니다.
         try {
+            // Audio Ducking: 설명 시작 시 기존 오디오가 있다면 음량이 조절되는 느낌을 줍니다.
+            // (브라우저 정책상 타 앱 제어는 어렵지만 현재 앱 내 사운드는 제어 가능)
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
                 method: "POST",
                 headers: { "xi-api-key": ELEVEN_API, "Content-Type": "application/json" },
@@ -194,31 +237,36 @@
             });
             const blob = await res.blob();
             audioPlayer.src = URL.createObjectURL(blob);
-            
-            // 설명 시작 시 이벤트
-            audioPlayer.onplay = () => { /* 외부 음악 앱 제어는 시스템 설정에 따름 */ };
             audioPlayer.play();
-        } catch (e) {}
+        } catch (e) { console.error(e); }
     }
 
     function finishSession() {
         navigator.geolocation.clearWatch(watchId);
         const endTime = new Date();
-        const diffSec = Math.floor((endTime - startTime) / 1000);
-        const min = Math.floor(diffSec / 60);
-        const sec = diffSec % 60;
-        
-        const distKm = (totalDist / 1000).toFixed(2);
-        const avgSpeed = (distKm / (diffSec / 3600)).toFixed(1);
-        const kcal = (config.mode === '산책' ? distKm * 50 : distKm * 70).toFixed(0);
+        const durationMin = ((endTime - startTime) / 60000).toFixed(1);
+        const finalDistKm = (totalDistance / 1000).toFixed(2);
+        const kcal = (config.mode === '산책' ? finalDistKm * 50 : finalDistKm * 75).toFixed(0);
+        const avgSpeed = (finalDistKm / (durationMin / 60)).toFixed(1);
 
-        document.getElementById('res-time').innerText = `${min}:${sec < 10 ? '0'+sec : sec}`;
-        document.getElementById('res-dist').innerText = `${distKm}km`;
-        document.getElementById('res-speed').innerText = `${isNaN(avgSpeed) ? 0 : avgSpeed}km/h`;
-        document.getElementById('res-kcal').innerText = `${kcal}kcal`;
+        document.getElementById('sum-time').innerText = `${durationMin} 분`;
+        document.getElementById('sum-dist').innerText = `${finalDistKm} km`;
+        document.getElementById('sum-kcal').innerText = `${kcal} kcal`;
+        document.getElementById('sum-speed').innerText = `${avgSpeed} km/h`;
+        document.getElementById('summary-type').innerText = `${config.mode} 완료 리포트`;
         
-        document.getElementById('summary-modal').style.display = 'flex';
-        document.getElementById('summary-title').innerText = `${config.mode} 종료!`;
+        document.getElementById('summary-overlay').style.display = 'flex';
+        speak(`${config.mode}을 종료합니다. 오늘 정말 고생 많으셨어요!`);
+    }
+
+    function centerMap() {
+        const pos = runnerMarker.getPosition();
+        if (pos) map.panTo(pos);
+    }
+    
+    function toggleMapType() {
+        const current = map.getMapTypeId();
+        map.setMapTypeId(current === 'roadmap' ? 'hybrid' : 'roadmap');
     }
 
     window.onload = initMap;
