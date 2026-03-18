@@ -8,39 +8,33 @@
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
         body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
-        
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
-        
         .setup-group { margin-bottom: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
-        
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5F5; color: var(--primary); font-weight: 800; }
-        
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
-        
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; }
-        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
-
+        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
         #map { height: 100vh; width: 100%; }
-        #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; line-height: 1.4; }
+        #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow: hidden; }
         .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; }
+        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 30px 0; }
+        .summary-item { background: var(--light); padding: 15px; border-radius: 20px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <div class="header-section">
-        <h1>임장런 with 두부 🐾</h1>
-        <p>구성로 90 래미안 2차 기점 정밀 분석</p>
-    </div>
+    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>구성로 90 래미안 2차 기점 가치 분석</p></div>
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
@@ -69,8 +63,14 @@
 <div id="map"></div>
 <div id="panel">
     <div id="guideTitle">DUBU PROFESSIONAL INSIGHT</div>
-    <div id="guideText">브리핑 대기 중입니다...</div>
+    <div id="guideText">브리핑 경로를 탐색 중입니다...</div>
     <button class="end-btn" onclick="location.reload()">다시 시작</button>
+</div>
+
+<div id="summary-overlay">
+    <h1 style="color:var(--primary); margin-bottom:5px;">분석 리포트 완료! 🐾</h1>
+    <div class="summary-grid" id="summary-content"></div>
+    <button class="start-btn" onclick="location.reload()">메인으로</button>
 </div>
 
 <script>
@@ -85,7 +85,6 @@ const InfoModule = {
         "정밀 분석을 마칩니다. 래미안 2차의 입지 점수와 플랫폼시티 연결 지표를 기반으로 리포트를 생성했습니다. 성공적인 임장 분석을 위한 두부의 최종 가이드를 확인하십시오."
     ],
     async speak(text) {
-        if (this.isSpeaking) return;
         this.isSpeaking = true;
         try {
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/7osWBIDUlEhEpEMcbqoW`, {
@@ -95,11 +94,10 @@ const InfoModule = {
             });
             const blob = await res.blob();
             this.audio.src = URL.createObjectURL(blob);
-            
             return new Promise((resolve) => {
                 this.audio.onended = () => {
                     URL.revokeObjectURL(this.audio.src);
-                    // 10초 대기 후 다음 멘트 가능하게 설정
+                    // 음성 종료 후 정확히 10초 대기
                     setTimeout(() => {
                         this.isSpeaking = false;
                         resolve();
@@ -122,12 +120,12 @@ const CourseData = {
         1: { name: "⚡ GTX-A 용인역 수혜권 스캐닝", start: "37.3184,127.1105", end: "37.3110,127.1050" },
         3: { name: "🏃 탄천-마북천 주거환경 스캔", start: "37.3184,127.1105", end: "37.3210,127.1010" },
         5: { name: "🔥 언남-마북 갭투자 정밀 분석", start: "37.3184,127.1105", end: "37.3240,127.1150" },
-        10: { name: "🏅 기흥구 중심축 시장 매핑", start: "37.3184,127.1105", end: "37.3300,127.1000" }
+        10: { name: "🏅 기흥구 중심축 시장 강도 매핑", start: "37.3184,127.1105", end: "37.3300,127.1000" }
     }
 };
 
 const MapModule = {
-    map: null, marker: null, rend: null, history: [], historyLine: null,
+    map: null, marker: null, rend: null, historyLine: null,
     init() {
         this.map = new google.maps.Map(document.getElementById("map"), { center: { lat: 37.3184, lng: 127.1105 }, zoom: 17, disableDefaultUI: true });
         this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6, strokeOpacity: 0.9 }, suppressMarkers: false });
@@ -145,7 +143,7 @@ const MapModule = {
 
 const App = {
     config: { mode: '걷기', dist: 1, course: null },
-    state: { step: 0 },
+    state: { step: 0, trail: [] },
     init() { MapModule.init(); this.renderOptions(); },
     renderOptions() {
         const wSel = document.getElementById('walkCourse'); const rSel = document.getElementById('runCourse');
@@ -169,33 +167,42 @@ const App = {
     updateCourse(k) { this.config.course = CourseData[this.config.mode][k]; },
     async start() {
         document.getElementById('overlay').style.display = 'none';
-        const s = this.config.course.start.split(',').map(Number);
-        const e = this.config.course.end.split(',').map(Number);
-        const path = await MapModule.getPath([{lat: s[0], lng: s[1]}, {lat: e[0], lng: e[1]}]);
+        const sStr = this.config.course.start.split(','); const eStr = this.config.course.end.split(',');
+        const path = await MapModule.getPath([{lat: Number(sStr[0]), lng: Number(sStr[1])}, {lat: Number(eStr[0]), lng: Number(eStr[1])}]);
         
         let i = 0;
         const move = setInterval(async () => {
             if (i >= path.length) { 
                 clearInterval(move); 
-                InfoModule.speak(InfoModule.scripts[4]); 
+                await InfoModule.speak(InfoModule.scripts[4]); 
+                this.finish();
                 return; 
             }
             
-            // 음성 재생 중이 아닐 때만 다음 위치로 이동 (동기화 로직)
+            // 음성 재생 + 10초 대기 중이 아닐 때만 다음 위치로 이동 (동기화)
             if (!InfoModule.isSpeaking) {
                 const pos = path[i];
                 MapModule.marker.setPosition(pos); MapModule.map.panTo(pos);
-                MapModule.history.push(pos); MapModule.historyLine.setPath(MapModule.history);
+                this.state.trail.push(pos); MapModule.historyLine.setPath(this.state.trail);
                 
-                // 특정 시점에 브리핑 시작
+                // 특정 구간(인덱스) 마다 브리핑 실행
                 if (i % Math.floor(path.length / 4) === 0 && this.state.step < 4) {
                     const text = InfoModule.scripts[this.state.step++];
-                    document.getElementById('guideText').innerHTML = `<b>부동산 도슨트</b><br>${text}`;
+                    document.getElementById('guideText').innerHTML = `<b>전문 브리핑</b><br>${text}`;
                     InfoModule.speak(text);
                 }
                 i++;
             }
-        }, 1300);
+        }, 1200); // 6km/h 시뮬레이션 속도감
+    },
+    finish() {
+        document.getElementById('summary-content').innerHTML = `
+            <div class="summary-item"><label>이동 거리</label><b>${this.config.dist}km</b></div>
+            <div class="summary-item"><label>입지 등급</label><b>S+ (최우수)</b></div>
+            <div class="summary-item"><label>지가변동률</label><b>+12.4%</b></div>
+            <div class="summary-item"><label>분석 건물군</label><b>15개</b></div>
+        `;
+        document.getElementById('summary-overlay').style.display = 'flex';
     }
 };
 window.onload = () => App.init();
