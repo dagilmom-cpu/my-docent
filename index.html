@@ -18,11 +18,10 @@
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; }
+        .select-style { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; font-weight: 600; color: var(--dark); }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; }
         #map { height: 100vh; width: 100%; }
-        #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; }
-        #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
+        #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-sizing: border-box; z-index: 100; }
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow: hidden; }
         .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; }
@@ -31,13 +30,13 @@
 <body>
 
 <div id="overlay">
-    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>구성로 90 래미안 2차 기점 가치 분석</p></div>
+    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>마북 래미안 2차 → 보정역 실시간 분석</p></div>
     
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
-            <div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div>
-            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div>
+            <div id="btn-walk" class="option-card active" onclick="App.setMode('산책')">🚶 산책 모드</div>
+            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝 모드</div>
         </div>
     </div>
 
@@ -67,7 +66,6 @@
     <button class="start-btn" onclick="App.start()">분석 시작!</button>
 </div>
 
-<div id="speed-widget">⚡ 속도: <span id="current-speed">6.0</span> km/h</div>
 <div id="map"></div>
 <div id="panel">
     <div id="guideTitle">DUBU PROFESSIONAL INSIGHT</div>
@@ -77,14 +75,13 @@
 
 <script>
 const InfoModule = {
-    audio: new Audio(),
-    isSpeaking: false,
+    audio: new Audio(), isSpeaking: false,
     scripts: [
-        "두부 인텔리전스 시작합니다. 현재 분석 기점인 구성로 90은 '구성역 래미안 2차' 단지입니다. 삼성물산의 브랜드 파워와 함께 마북동 일대에서 가장 선호도 높은 대장주 단지 중 하나로 평가받습니다. 특히 용인 플랫폼시티의 수혜를 가장 근거리에서 받는 단지라는 점에 주목하며 분석을 시작합니다.",
-        "정면의 단지 조경과 건폐율을 확인하십시오. 마북 래미안 2차는 평지 중심의 안정적인 배치를 자랑하며, 단지 내부 산책로가 마북천 정비 사업 구간과 바로 연결되어 주거 쾌적성이 매우 우수합니다. 최근 GTX-A 용인역 개통에 따라 도보 역세권으로서의 가치가 재평가되며 전세가가 매매가를 강력하게 밀어 올리고 있습니다.",
-        "현재 통과 중인 인근 상업시설은 마북동 중심 학원가와 근린 상권이 결합된 형태입니다. 플랫폼시티 내 대규모 상업 용지가 개발되더라도, 래미안 단지를 포함한 약 3,000세대 고정 배후 수요를 확보하고 있어 상권의 응집력이 매우 뛰어납니다. 특히 1층 핵심 점포의 손바뀜이 거의 없는 우량 상권입니다.",
-        "좌측의 도로망 확충 계획에 주목하십시오. 용구대로 변의 확장 공사와 보행 환경 개선 사업이 완료되면 마북동에서 구성역까지의 접근성은 더욱 향상될 것입니다. 래미안 2차는 이러한 인프라 개선의 최대 수혜지로, 향후 신축 브랜드 단지들과의 시세 동조화를 통해 추가적인 가치 상승 모멘텀이 충분한 전략적 투자 요지입니다.",
-        "정밀 분석을 마칩니다. 래미안 2차의 입지 점수와 플랫폼시티 연결 지표를 기반으로 리포트를 생성했습니다. 성공적인 임장 분석을 위한 두부의 최종 가이드를 확인하십시오."
+        "두부 인텔리전스 시작합니다. 현재 마북 래미안 2차에서 보정역 방면으로 이어지는 구성로 라인은 플랫폼시티와 GTX-A 수혜의 핵심 연결축입니다.",
+        "정면의 단지 조경과 건폐율을 확인하십시오. 마북 래미안 2차는 평지 중심의 배치로 보정역까지의 도보 접근성이 매우 뛰어난 전략적 입지입니다.",
+        "현재 통과 중인 보정동-마북동 경계 상권은 학원가와 실거주 배후 수요가 탄탄하여 불황에도 시세 방어력이 매우 높은 우량 지역입니다.",
+        "용구대로 보행 환경 개선 사업이 완료되면 역세권 가치는 더욱 상승할 것입니다. 래미안 2차는 향후 신축 단지들과의 시세 동조화가 기대되는 투자 요지입니다.",
+        "보정역 기점 최종 분석을 마칩니다. 입지 점수와 플랫폼시티 연결 지표를 기반으로 리포트를 생성했습니다. 리포트를 확인하십시오."
     ],
     async speak(text, enabled) {
         if (!enabled || this.isSpeaking) return;
@@ -98,10 +95,7 @@ const InfoModule = {
             const blob = await res.blob();
             this.audio.src = URL.createObjectURL(blob);
             return new Promise((resolve) => {
-                this.audio.onended = () => {
-                    URL.revokeObjectURL(this.audio.src);
-                    setTimeout(() => { this.isSpeaking = false; resolve(); }, 10000); 
-                };
+                this.audio.onended = () => { URL.revokeObjectURL(this.audio.src); setTimeout(() => { this.isSpeaking = false; resolve(); }, 10000); };
                 this.audio.play();
             });
         } catch(e) { this.isSpeaking = false; }
@@ -109,27 +103,27 @@ const InfoModule = {
 };
 
 /**
- * [중요] 모드별 코스 명칭 데이터
+ * 📍 지도 이미지의 경로(마북 래미안 -> 보정역)를 반영한 데이터
  */
 const CourseData = {
-    '걷기': {
-        1: { name: "🚶 [걷기] 래미안 2차 주거 정밀 분석", start: "37.3184,127.1105", end: "37.3102,127.1082" },
-        3: { name: "🚶 [걷기] 마북천 수변 프리미엄 탐방", start: "37.3184,127.1105", end: "37.3120,127.1160" },
-        5: { name: "🚶 [걷기] 구성역 상권 유동성 분석", start: "37.3184,127.1105", end: "37.3150,127.1060" },
-        10: { name: "🚶 [걷기] 플랫폼시티 핵심 부지 답사", start: "37.3184,127.1105", end: "37.2950,127.1150" }
+    '산책': {
+        1: { name: "🚶 [산책] 래미안 2차 단지 내부 입지 분석", start: "37.3184,127.1105", end: "37.3150,127.1082" },
+        3: { name: "🚶 [산책] 마북천 수변길 따라 보정역 가는 길", start: "37.3184,127.1105", end: "37.3120,127.1085" },
+        5: { name: "🚶 [산책] 보정동 카페거리 연계 상권 탐방", start: "37.3184,127.1105", end: "37.3210,127.1090" },
+        10: { name: "🚶 [산책] 플랫폼시티 중심부 주거 답사 코스", start: "37.3184,127.1105", end: "37.2950,127.1150" }
     },
     '러닝': {
-        1: { name: "🏃 [러닝] GTX 수혜권 고속 스캔", start: "37.3184,127.1105", end: "37.3120,127.1050" },
-        3: { name: "🏃 [러닝] 마북-언남 배후단지 전세가 임장", start: "37.3184,127.1105", end: "37.3250,127.1150" },
-        5: { name: "🏃 [러닝] 신갈-구성역 갭투자 정밀 코스", start: "37.3184,127.1105", end: "37.2950,127.1050" },
-        10: { name: "🏃 [러닝] 기흥 동측 시장 강도 매핑 코스", start: "37.3184,127.1105", end: "37.3400,127.0950" }
+        1: { name: "🏃 [러닝] 보정역 GTX 수혜권 고속 스캔", start: "37.3184,127.1105", end: "37.3120,127.1050" },
+        3: { name: "🏃 [러닝] 구성로-용구대로 핵심 상권 러닝", start: "37.3184,127.1105", end: "37.3250,127.1150" },
+        5: { name: "🏃 [러닝] 신갈오거리-플랫폼시티 외곽 코스", start: "37.3184,127.1105", end: "37.2950,127.1050" },
+        10: { name: "🏃 [러닝] 기흥구 동축 대단지 시장매핑 코스", start: "37.3184,127.1105", end: "37.3400,127.0950" }
     }
 };
 
 const MapModule = {
     map: null, marker: null, rend: null, trail: [], historyLine: null,
     init() {
-        this.map = new google.maps.Map(document.getElementById("map"), { center: { lat: 37.3184, lng: 127.1105 }, zoom: 17, disableDefaultUI: true });
+        this.map = new google.maps.Map(document.getElementById("map"), { center: { lat: 37.3184, lng: 127.1105 }, zoom: 16, disableDefaultUI: true });
         this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF9500", strokeWeight: 6, strokeOpacity: 0.9 }, suppressMarkers: false });
         this.marker = new google.maps.Marker({ map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) } });
         this.historyLine = new google.maps.Polyline({ map: this.map, strokeColor: "#555", strokeWeight: 4, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, repeat: '15px' }] });
@@ -144,11 +138,11 @@ const MapModule = {
 };
 
 const App = {
-    config: { mode: '걷기', dist: 1, docent: '듣기', course: null },
+    config: { mode: '산책', dist: 1, docent: '듣기', course: null },
     state: { step: 0 },
     init() { MapModule.init(); this.renderOptions(); },
     
-    // 이 함수가 핵심입니다: 드롭다운을 싹 비우고 다시 채웁니다.
+    // 드롭다운 내용을 모드에 맞춰 즉시 재생성하는 함수
     renderOptions() {
         const select = document.getElementById('activeCourse');
         select.innerHTML = ""; // 기존 옵션 삭제
@@ -157,7 +151,7 @@ const App = {
         Object.entries(currentData).forEach(([dist, obj]) => {
             const opt = document.createElement('option');
             opt.value = dist;
-            opt.innerText = obj.name;
+            opt.innerText = obj.name; // 산책/러닝별 명칭 적용
             if (Number(dist) === this.config.dist) opt.selected = true;
             select.appendChild(opt);
         });
@@ -165,15 +159,15 @@ const App = {
     },
     setMode(m) {
         this.config.mode = m;
-        document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card';
+        document.getElementById('btn-walk').className = m === '산책' ? 'option-card active' : 'option-card';
         document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card';
-        this.renderOptions(); // 모드 변경 시 리스트 갱신
+        this.renderOptions(); // 버튼 클릭 시 드롭다운 텍스트 즉시 변경
     },
     setDist(d) {
         this.config.dist = d;
         document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
         document.getElementById('d'+d).classList.add('active');
-        this.renderOptions(); // 거리 변경 시 리스트 갱신
+        this.renderOptions();
     },
     updateCourse(k) { this.config.course = CourseData[this.config.mode][k]; },
     setDocent(t) {
