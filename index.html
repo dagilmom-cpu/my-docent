@@ -20,29 +20,29 @@
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
         
         #map { height: 100vh; width: 100%; }
 
-        /* 🗺️ 추가된 작은 네비게이션 위젯 스타일 */
+        /* 🗺️ 네비게이션 위젯 (기존보다 콤팩트하게 사이즈 축소) */
         #navi-widget { 
             position: absolute; top: 15px; left: 50%; transform: translateX(-50%); 
-            width: 75%; background: var(--orange); color: white; padding: 10px 15px; 
-            border-radius: 12px; z-index: 1000; display: none; align-items: center; gap: 10px; 
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15); 
+            width: 70%; background: var(--orange); color: white; padding: 8px 15px; 
+            border-radius: 12px; z-index: 3000; display: none; align-items: center; gap: 10px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
         }
-        .navi-icon { font-size: 1.5rem; font-weight: 900; }
+        .navi-icon { font-size: 1.4rem; font-weight: 900; }
         .navi-text { flex: 1; }
-        .navi-dist { font-size: 1rem; font-weight: 800; line-height: 1; }
-        .navi-msg { font-size: 0.7rem; opacity: 0.9; margin-top: 2px; }
+        .navi-dist { font-size: 0.95rem; font-weight: 800; line-height: 1; }
+        .navi-msg { font-size: 0.65rem; opacity: 0.9; margin-top: 2px; white-space: nowrap; }
 
-        #speed-widget { position: absolute; top: 15px; left: 15px; background: rgba(28,28,30,0.8); color: white; padding: 8px 12px; border-radius: 12px; z-index: 900; font-weight: 700; font-size: 0.7rem; line-height: 1.3; }
+        #speed-widget { position: absolute; top: 15px; left: 15px; background: rgba(28,28,30,0.8); color: white; padding: 8px 12px; border-radius: 10px; z-index: 900; font-weight: 700; font-size: 0.7rem; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; height: 3em; overflow: hidden; }
         .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; cursor: pointer; }
-        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
+        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 4000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 20px 0; }
         .summary-item { background: var(--light); padding: 15px; border-radius: 20px; text-align: center; }
         .map-controls { position: absolute; right: 20px; bottom: 200px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
@@ -62,7 +62,7 @@
 <div id="overlay">
     <div class="header-section">
         <h1>임장런 with 두부 🐾</h1>
-        <p>구성로 90 래미안 2차 기점 가치 분석</p>
+        <p>구성로 90 기점 실시간 가치 분석</p>
     </div>
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
@@ -95,7 +95,7 @@
     <button class="start-btn" onclick="App.start()">분석 시작!</button>
 </div>
 
-<div id="speed-widget">⏱️ 모드: <span id="mode-text">걷기</span><br>⚡ 현재: <span id="current-speed">0.0</span> km/h</div>
+<div id="speed-widget">⚡ 현재: <span id="current-speed">0.0</span> km/h</div>
 <div id="map"></div>
 <div class="map-controls">
     <button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button>
@@ -118,13 +118,13 @@ const START_POS = { lat: 37.31845, lng: 127.11052 };
 
 const CourseData = {
     '걷기': {
-        1: { name: "🏡 래미안 2차 → 구성초 주거 분석", dest: "37.315,127.108", waypts: ["37.317,127.110"] },
-        3: { name: "🌳 마북천 수변길 보정역 탐방", dest: "37.312,127.108", waypts: ["37.315,127.109"] },
+        1: { name: "🏡 래미안 2차 → 구성초 분석", dest: "37.315,127.108", waypts: ["37.317,127.110"] },
+        3: { name: "🌳 마북천 수변 보정역 탐방", dest: "37.312,127.108", waypts: ["37.315,127.109"] },
         5: { name: "☕ 보정동 카페거리 상권 유동성", dest: "37.321,127.109", waypts: ["37.318,127.110"] },
         10: { name: "🏗️ 플랫폼시티-보정역 핵심벨트", dest: "37.295,127.115", waypts: ["37.305,127.110"] }
     },
     '러닝': {
-        1: { name: "⚡ 보정역 GTX-A 수혜권 스캔", dest: "37.311,127.105", waypts: ["37.315,127.108"] },
+        1: { name: "⚡ 보정역 GTX 수혜권 스캔", dest: "37.311,127.105", waypts: ["37.315,127.108"] },
         3: { name: "🏃 탄천-구성로 배후단지 임장", dest: "37.321,127.101", waypts: ["37.318,127.105"] },
         5: { name: "🔥 보정동 대단지 갭투자 분석", dest: "37.324,127.115", waypts: ["37.330,127.120"] },
         10: { name: "🏅 기흥구 시장 강도 매핑", dest: "37.330,127.100", waypts: ["37.340,127.110"] }
@@ -135,12 +135,7 @@ const SoundModule = {
     playClick() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
         osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.connect(gain); gain.connect(audioCtx.destination);
         osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 };
@@ -148,17 +143,10 @@ const SoundModule = {
 const MapModule = {
     map: null, marker: null, svc: null, rend: null, historyLine: null,
     init() {
-        this.map = new google.maps.Map(document.getElementById("map"), {
-            center: START_POS, zoom: 17, disableDefaultUI: true
-        });
+        this.map = new google.maps.Map(document.getElementById("map"), { center: START_POS, zoom: 17, disableDefaultUI: true });
         this.svc = new google.maps.DirectionsService();
-        this.rend = new google.maps.DirectionsRenderer({
-            map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 },
-            suppressMarkers: false
-        });
-        this.marker = new google.maps.Marker({
-            map: this.map, position: START_POS, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) }
-        });
+        this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 }, suppressMarkers: false });
+        this.marker = new google.maps.Marker({ map: this.map, position: START_POS, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) } });
         this.historyLine = new google.maps.Polyline({
             map: this.map, strokeColor: "#555", strokeOpacity: 0.6, strokeWeight: 4,
             icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '15px' }]
@@ -176,7 +164,7 @@ const MapModule = {
             if (status === 'OK') {
                 this.rend.setDirections(res);
                 document.getElementById('guideText').innerHTML = `<b>${courseObj.name}</b> 코스 분석을 시작합니다.`;
-                document.getElementById('navi-widget').style.display = 'flex'; // 위젯 활성화
+                document.getElementById('navi-widget').style.display = 'flex'; // 분석 시작 시 위젯 등장
             }
         });
     },
@@ -263,7 +251,6 @@ const App = {
             if (s < 1.2) s = 0;
             document.getElementById('current-speed').innerText = s.toFixed(1);
             
-            // 네비 거리 감소 시뮬레이션
             let m = parseInt(document.getElementById('navi-m').innerText);
             if(m > 10) document.getElementById('navi-m').innerText = m - 5;
 
@@ -291,7 +278,7 @@ const App = {
         document.getElementById('summary-content').innerHTML = `
             <div class="summary-item"><label>분석 시간</label><value>${min}분</value></div>
             <div class="summary-item"><label>분석 거리</label><value>${km}km</value></div>
-            <div class="summary-item"><label>칼로리</label><value>${Math.floor(km * 60)}</value></div>
+            <div class="summary-item"><label>에너지</label><value>${Math.floor(km * 60)}</value></div>
             <div class="summary-item"><label>분석 지점</label><value>${this.state.step}곳</value></div>
         `;
         document.getElementById('summary-overlay').style.display = 'flex';
