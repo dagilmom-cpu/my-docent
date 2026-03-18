@@ -42,19 +42,19 @@
 <div id="overlay">
     <div class="header-section">
         <h1>임장런 with 두부 🐾</h1>
-        <p>구성역~용구대로 핵심 상권 시뮬레이션을 시작합니다.</p>
+        <p>구성로 90 기점 가상 시뮬레이션을 시작합니다.</p>
     </div>
     <div class="setup-group">
         <span class="setup-label">1. 분석 모드</span>
         <div class="card-grid">
-            <div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 정밀 분석</div>
-            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 고속 스캐닝</div>
+            <div id="btn-walk" class="option-card active" onclick="App.setMode('시뮬레이션')">🚶 시뮬레이션</div>
+            <div id="btn-run" class="option-card" onclick="App.setMode('실시간')">🏃 실시간 모드</div>
         </div>
     </div>
     <div class="setup-group">
         <span class="setup-label">2. 목표 코스</span>
         <select id="walkCourse" class="select-style">
-            <option value="37.3184,127.1105|37.3102,127.1082">📍 구성로 90 → 용구대로 2560 분석 루트</option>
+            <option value="simulation">📍 구성로 90 → 용구대로 2560 분석 루트</option>
         </select>
     </div>
     <div class="setup-group">
@@ -64,25 +64,25 @@
             <div id="docent-off" class="option-card" onclick="App.setDocent('조용히')">조용히 하기</div>
         </div>
     </div>
-    <button class="start-btn" onclick="App.start()">시뮬레이션 시작!</button>
+    <button class="start-btn" onclick="App.start()">분석 시뮬레이션 시작!</button>
 </div>
 
-<div id="speed-widget">⏱️ 활동: <span id="mode-text">걷기</span><br>⚡ 속도: <span id="current-speed">6.0</span> km/h</div>
+<div id="speed-widget">⏱️ 활동: <span id="mode-text">시뮬레이션</span><br>⚡ 속도: <span id="current-speed">6.0</span> km/h</div>
 <div id="map"></div>
 <div class="map-controls">
     <button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button>
     <button class="control-btn" onclick="MapModule.centerMap()">📍</button>
 </div>
 <div id="panel">
-    <div id="guideTitle">DUBU AI REAL-TIME FEED</div>
-    <div id="guideText">경로를 따라 이동하며 건물 정보를 스캔합니다.</div>
-    <button id="finish-btn" class="end-btn" onclick="App.finish()">분석 종료</button>
+    <div id="guideTitle">DUBU PROFESSIONAL INSIGHT</div>
+    <div id="guideText">경로를 로드 중입니다...</div>
+    <button id="finish-btn" class="end-btn" onclick="App.finish()">분석 마감</button>
 </div>
 
 <div id="summary-overlay">
     <h1 style="color:var(--primary); margin-bottom:5px;">분석 리포트 완료! 🐾</h1>
     <div class="summary-grid" id="summary-content"></div>
-    <button class="start-btn" onclick="location.reload()">다시 실행</button>
+    <button class="start-btn" onclick="location.reload()">메인으로</button>
 </div>
 
 <script>
@@ -92,11 +92,11 @@
 const InfoModule = {
     audio: new Audio(),
     scripts: [
-        "두부 인텔리전스 연결. 구성로 90 기점 분석 시작합니다. 이 일대는 용인 플랫폼시티의 핵심 관문으로 지가 상승률이 기흥구 평균을 2배 상회합니다.",
-        "정면 아파트군은 최근 GTX-A 개통 호재가 실거래가에 직접 반영되었습니다. 전용 84타입 매물 잠김 현상이 뚜렷하며 신고가 경신 가능성이 매우 높습니다.",
-        "우측 노후 빌라촌은 현재 소규모 주택 정비사업 후보지로 거론됩니다. 평당 대지지분 가격이 인근 상업용지에 육박하는 저력 있는 필지입니다.",
-        "현재 통과 중인 상가 건물을 주목하십시오. 공실률 제로 수준의 알짜 매물로, 용구대로 확충 시 전면 가시성이 확보되어 추가 임대료 상승이 확정적입니다.",
-        "용구대로 2560 지점 분석을 마칩니다. 수집된 입지 지표를 리포트로 확인하십시오. 당신의 성공적인 자산 운용을 지지합니다."
+        "두부 인텔리전스 연결되었습니다. 현재 분석 지점인 구성로 90 일대는 용인 플랫폼시티의 관문 입지로, GTX-A 개통 수혜와 함께 최근 지가 상승률이 기흥구 평균을 상회하는 핵심 거점입니다.",
+        "정면의 대단지 아파트를 확인하십시오. 최근 84타입 실거래가가 신고가 대비 90% 이상 회복되었으며, 외지인 매수 비중이 20%를 돌파하며 강력한 하방 경직성을 보이고 있습니다.",
+        "좌측의 상업 시설군은 역세권 지구단위계획 수립에 따른 상권 확장 구역입니다. 용구대로 확충 시 가시성 확보로 인한 임대료 15% 상승이 예상되는 고수익 우량 필지입니다.",
+        "우측 빌라촌은 현재 공공재개발 후보지 노후도 요건을 충족했습니다. 대지지분 가격이 인근 분양가 대비 현저히 저평가되어 있어 브랜드 단지 편입 시 시세 차익 극대화가 기대됩니다.",
+        "용구대로 2560 기점까지의 정밀 임장 분석을 마칩니다. 수집된 부동산 지표와 입지 분석 데이터를 리포트로 확인하십시오. 당신의 성공적인 자산 전략을 지지합니다."
     ],
     async speak(text, enabled) {
         if(!enabled) return;
@@ -108,13 +108,14 @@ const InfoModule = {
             });
             const blob = await res.blob();
             this.audio.src = URL.createObjectURL(blob);
+            this.audio.onended = () => { URL.revokeObjectURL(this.audio.src); };
             this.audio.play();
         } catch(e) {}
     }
 };
 
 const MapModule = {
-    map: null, marker: null, rend: null, trail: null,
+    map: null, marker: null, rend: null, historyLine: null,
     init() {
         this.map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 37.3184, lng: 127.1105 }, zoom: 17, disableDefaultUI: true
@@ -126,20 +127,20 @@ const MapModule = {
         this.marker = new google.maps.Marker({
             map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) }
         });
-        // 지나간 길을 표시할 점선
-        this.trail = new google.maps.Polyline({
+        // 지나간 흔적 (회색 점선)
+        this.historyLine = new google.maps.Polyline({
             map: this.map, strokeColor: "#555", strokeOpacity: 0, strokeWeight: 4,
             icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '15px' }]
         });
     },
-    drawStaticRoute(points) {
+    drawRoute(points) {
         const svc = new google.maps.DirectionsService();
         svc.route({
             origin: points[0], destination: points[1],
             travelMode: 'WALKING'
         }, (res) => { if(res) this.rend.setDirections(res); });
     },
-    updateTrail(path) { this.trail.setPath(path); },
+    updateTrail(path) { this.historyLine.setPath(path); },
     centerMap() { this.map.panTo(this.marker.getPosition()); },
     toggleMapType() { this.map.setMapTypeId(this.map.getMapTypeId() === 'roadmap' ? 'hybrid' : 'roadmap'); }
 };
@@ -155,7 +156,7 @@ const SoundModule = {
 
 const App = {
     config: { docent: '듣기', speed: 6.0 },
-    state: { timer: null, step: 0, trailCoords: [] },
+    state: { timer: null, step: 0, trail: [], startTime: null },
 
     init() { MapModule.init(); },
     setMode(m) { SoundModule.playClick(); document.getElementById('mode-text').innerText = m; },
@@ -165,45 +166,44 @@ const App = {
         SoundModule.playClick();
         document.getElementById('overlay').style.display = 'none';
         
-        // 1. 가상 루트 설정 (구성로 90 -> 용구대로 2560)
-        const start = { lat: 37.3184, lng: 127.1105 };
-        const end = { lat: 37.3102, lng: 127.1082 };
-        MapModule.drawStaticRoute([start, end]);
+        // 가상 루트 지점 (구성로 90 -> 용구대로 2560)
+        const startPos = { lat: 37.3184, lng: 127.1105 };
+        const endPos = { lat: 37.3102, lng: 127.1082 };
         
-        // 2. 시뮬레이션 시작
-        this.simulateMovement(start, end);
+        MapModule.drawRoute([startPos, endPos]);
+        this.state.startTime = new Date();
+        this.runSimulation(startPos, endPos);
         InfoModule.speak(InfoModule.scripts[0], this.config.docent === '듣기');
     },
 
-    // 6km/h 속도로 이동하는 시뮬레이션 로직
-    simulateMovement(start, end) {
-        let fraction = 0;
-        const interval = 100; // 0.1초마다 갱신
-        const totalDuration = 45000; // 약 45초 동안 이동 (시연용 압축)
+    // 6km/h 속도로 이동하는 시뮬레이션
+    runSimulation(start, end) {
+        let progress = 0;
+        const totalDuration = 50000; // 약 50초간 시뮬레이션 (발표용)
+        const interval = 100;
 
         this.state.timer = setInterval(() => {
-            fraction += interval / totalDuration;
-            if (fraction >= 1) { this.finish(); return; }
+            progress += interval / totalDuration;
+            if (progress >= 1) { this.finish(); return; }
 
-            const currentLat = start.lat + (end.lat - start.lat) * fraction;
-            const currentLng = start.lng + (end.lng - start.lng) * fraction;
-            const pos = { lat: currentLat, lng: currentLng };
+            const lat = start.lat + (end.lat - start.lat) * progress;
+            const lng = start.lng + (end.lng - start.lng) * progress;
+            const currentPos = { lat, lng };
 
-            // 마커 위치 업데이트 및 화면 중앙 유지
-            MapModule.marker.setPosition(pos);
-            MapModule.map.panTo(pos);
+            MapModule.marker.setPosition(currentPos);
+            MapModule.map.panTo(currentPos);
+            
+            // 이동 흔적을 점선으로 업데이트
+            this.state.trail.push(currentPos);
+            MapModule.updateTrail(this.state.trail);
 
-            // 지나온 길 점선 처리
-            this.state.trailCoords.push(pos);
-            MapModule.updateTrail(this.state.trailCoords);
-
-            // 10초마다 브리핑 실행 (step 관리)
-            const currentStep = Math.floor(fraction * 5);
+            // 10초(진행도 약 20%) 마다 전문 브리핑 실행
+            const currentStep = Math.floor(progress * 5);
             if (currentStep > this.state.step && currentStep < 5) {
                 this.state.step = currentStep;
-                const script = InfoModule.scripts[this.state.step];
-                InfoModule.speak(script, this.config.docent === '듣기');
-                document.getElementById('guideText').innerHTML = `<b>AI 브리핑</b><br>${script}`;
+                const text = InfoModule.scripts[this.state.step];
+                InfoModule.speak(text, this.config.docent === '듣기');
+                document.getElementById('guideText').innerHTML = `<b>AI 브리핑</b><br>${text}`;
             }
         }, interval);
     },
@@ -212,10 +212,10 @@ const App = {
         clearInterval(this.state.timer);
         InfoModule.speak(InfoModule.scripts[4], this.config.docent === '듣기');
         document.getElementById('summary-content').innerHTML = `
-            <div class="summary-item"><label>이동 거리</label><value>1.2km</value></div>
+            <div class="summary-item"><label>이동 거리</label><value>1.3km</value></div>
             <div class="summary-item"><label>평균 속도</label><value>6.0km/h</value></div>
-            <div class="summary-item"><label>분석 건물</label><value>12개</value></div>
-            <div class="summary-item"><label>지가 변동</label><value>+14.2%</value></div>
+            <div class="summary-item"><label>지가 변동</label><value>+14.8%</value></div>
+            <div class="summary-item"><label>매물 가치</label><value>우수</value></div>
         `;
         document.getElementById('summary-overlay').style.display = 'flex';
     }
