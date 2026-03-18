@@ -20,9 +20,10 @@
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
         #map { height: 100vh; width: 100%; }
+        /* 온도 위젯 스타일 삭제됨 */
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; line-height: 1.4; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
@@ -81,7 +82,7 @@
 </div>
 <div id="panel">
     <div id="guideTitle">DUBU MARKET INSIGHT</div>
-    <div id="guideText">두부가 지도를 분석 중입니다...</div>
+    <div id="guideText">두부가 용인 지도를 분석 중입니다...</div>
     <button id="finish-btn" class="end-btn" onclick="App.finish()">걷기 종료</button>
 </div>
 
@@ -93,20 +94,20 @@
 
 <script>
 /**
- * 사진 속 노선을 완벽 구현한 임장 코스 데이터
+ * 임장 코스 데이터 (제주 데이터 삭제 및 보정역 방향 노선 적용)
  */
 const CourseData = {
     '걷기': {
-        1: { name: "🏡 [용인] 래미안 2차 → 보정역 입지 분석", dest: "37.31215,127.10825", waypts: ["37.31745,127.11012", "37.31502,127.10855"] },
-        3: { name: "🌳 [용인] 구성로-보정동 학원가 루트", dest: "37.32105,127.10925", waypts: ["37.31845,127.11052"] },
-        5: { name: "☕ [용인] 구성역-보정동 카페거리 코스", dest: "37.32505,127.10555", waypts: ["37.32005,127.10755"] },
-        10: { name: "🏗️ [용인] 플랫폼시티 연결 주거 핵심 벨트", dest: "37.30505,127.10025", waypts: ["37.31005,127.10525"] }
+        1: { name: "🏡 마북 래미안 2차 → 구성초 주거 분석", dest: "37.315,127.108", waypts: ["37.317,127.110"] },
+        3: { name: "🌳 마북천 수변길 따라 보정역 탐방", dest: "37.312,127.108", waypts: ["37.315,127.109"] },
+        5: { name: "☕ 보정동 카페거리 상권 유동성 체크", dest: "37.321,127.109", waypts: ["37.318,127.110"] },
+        10: { name: "🏗️ 플랫폼시티-보정역 주거 핵심벨트 답사", dest: "37.295,127.115", waypts: ["37.305,127.110"] }
     },
     '러닝': {
-        1: { name: "⚡ [용인] 구성역 GTX 수혜권 고속 스캔", dest: "37.31105,127.10525", waypts: ["37.31505,127.10825"] },
-        3: { name: "🏃 [러닝] 탄천 연계 대단지 갭투자 임장", dest: "37.32105,127.10125", waypts: ["37.31805,127.10525"] },
-        5: { name: "🔥 [러닝] 보정-구성 대단지 시세 동조화", dest: "37.32405,127.11525", waypts: ["37.33005,127.12025"] },
-        10: { name: "🏅 [러닝] 기흥구 부동산 시장 전체 조망", dest: "37.33005,127.10025", waypts: ["37.34005,127.11025"] }
+        1: { name: "⚡ 보정역 GTX-A 수혜권 고속 스캔", dest: "37.311,127.105", waypts: ["37.315,127.108"] },
+        3: { name: "🏃 탄천-구성로 연계 배후단지 임장", dest: "37.321,127.101", waypts: ["37.318,127.105"] },
+        5: { name: "🔥 보정동 대단지 갭투자 분석 러닝", dest: "37.324,127.115", waypts: ["37.330,127.120"] },
+        10: { name: "🏅 기흥구 동측 시장 강도 전체 매핑", dest: "37.330,127.100", waypts: ["37.340,127.110"] }
     }
 };
 
@@ -128,15 +129,15 @@ const MapModule = {
     map: null, marker: null, svc: null, rend: null, historyLine: null,
     init() {
         this.map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 37.31845, lng: 127.11052 }, zoom: 16, disableDefaultUI: true
+            center: { lat: 37.318, lng: 127.110 }, zoom: 16, disableDefaultUI: true
         });
         this.svc = new google.maps.DirectionsService();
         this.rend = new google.maps.DirectionsRenderer({
-            map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6, strokeOpacity: 0.8 },
+            map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 },
             suppressMarkers: false
         });
         this.marker = new google.maps.Marker({
-            map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) }
+            map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(30, 30) }
         });
         this.historyLine = new google.maps.Polyline({
             map: this.map, strokeColor: "#555", strokeOpacity: 0.6, strokeWeight: 4,
@@ -154,7 +155,7 @@ const MapModule = {
         }, (res, status) => {
             if (status === 'OK') {
                 this.rend.setDirections(res);
-                document.getElementById('guideText').innerHTML = `<b>${courseObj.name}</b> 코스 분석을 시작합니다.`;
+                document.getElementById('guideText').innerHTML = `<b>${courseObj.name}</b> 코스 분석 중입니다.`;
             }
         });
     },
@@ -167,7 +168,7 @@ const InfoModule = {
     audio: new Audio(),
     scripts: [
         "두부 인텔리전스 연결되었습니다. 현재 분석 중인 용인 구성-보정 라인은 플랫폼시티와 GTX-A 수혜가 집중되는 핵심 연결축입니다.",
-        "좌측의 단지를 주목하세요. 보정역 접근성에 따라 최근 실거래가가 전고점의 85% 이상 회복되었으며, 갭투자 수요가 유입되는 지점입니다.",
+        "좌측의 아파트 단지를 주목하세요. 보정역 접근성에 따라 최근 실거래가가 전고점의 85% 이상 회복되었으며, 갭투자 수요가 유입되는 지점입니다.",
         "구성로 변 상권에 주목하세요. 마북천 정비와 함께 유동인구 증가가 예상되는 요지로, 공실률이 매우 낮은 초우량 투자 지역입니다.",
         "오늘의 전문 임장 분석을 마칩니다. 요약 리포트를 통해 수집된 용인 지역 부동산 지표를 확인하시고, 성공적인 자산 전략을 수립하시기 바랍니다."
     ],
@@ -267,7 +268,7 @@ const App = {
         document.getElementById('summary-content').innerHTML = `
             <div class="summary-item"><label>분석 시간</label><value>${min}분</value></div>
             <div class="summary-item"><label>분석 거리</label><value>${km}km</value></div>
-            <div class="summary-item"><label>에너지</label><value>${Math.floor(km * 60)}</value></div>
+            <div class="summary-item"><label>칼로리</label><value>${Math.floor(km * 60)}</value></div>
             <div class="summary-item"><label>분석 지점</label><value>${this.state.step}곳</value></div>
         `;
         document.getElementById('summary-overlay').style.display = 'flex';
