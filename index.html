@@ -3,38 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 두부 실시간 모드</title>
+    <title>임장런 Pro - 여유 있는 도슨트 모드</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
-        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
-        .header-section { margin-bottom: 25px; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
-        .header-section p { color: var(--gray); margin-top: 5px; font-size: 0.95rem; }
         .setup-group { margin-bottom: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.95rem; font-weight: 500; }
+        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5F5; color: var(--primary); font-weight: 800; }
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; cursor: pointer; margin-bottom: 10px; }
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
         #map { height: 100vh; width: 100%; }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; line-height: 1.4; }
-        #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
+        #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; height: 3em; overflow: hidden; }
-        .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; cursor: pointer; }
-        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 3000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 20px 0; }
-        .summary-item { background: var(--light); padding: 15px; border-radius: 20px; text-align: center; }
-        .summary-item label { display: block; font-size: 0.75rem; color: var(--gray); margin-bottom: 5px; }
-        .summary-item value { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
-        .map-controls { position: absolute; right: 20px; bottom: 200px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
-        .control-btn { width: 55px; height: 55px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow: hidden; }
+        .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -42,186 +33,48 @@
 <div id="overlay">
     <div class="header-section">
         <h1>임장런 with 두부 🐾</h1>
-        <p>구성로 90 기점 가상 시뮬레이션을 시작합니다.</p>
+        <p>구성로 90 래미안 2차 기점 정밀 분석</p>
     </div>
     <div class="setup-group">
         <span class="setup-label">1. 분석 모드</span>
         <div class="card-grid">
-            <div id="btn-walk" class="option-card active" onclick="App.setMode('시뮬레이션')">🚶 시뮬레이션</div>
-            <div id="btn-run" class="option-card" onclick="App.setMode('실시간')">🏃 실시간 모드</div>
+            <div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 정밀 도슨트</div>
+            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 고속 스캐닝</div>
         </div>
     </div>
     <div class="setup-group">
-        <span class="setup-label">2. 목표 코스</span>
-        <select id="walkCourse" class="select-style">
-            <option value="simulation">📍 구성로 90 → 용구대로 2560 분석 루트</option>
-        </select>
+        <span class="setup-label">2. 목표 거리</span>
+        <div class="dist-grid">
+            <div class="dist-card active" onclick="App.setDist(this, 1)">1km</div>
+            <div class="dist-card" onclick="App.setDist(this, 3)">3km</div>
+            <div class="dist-card" onclick="App.setDist(this, 5)">5km</div>
+            <div class="dist-card" onclick="App.setDist(this, 10)">10km</div>
+        </div>
     </div>
     <div class="setup-group">
-        <span class="setup-label">3. 가이드 음성</span>
-        <div class="card-grid">
-            <div id="docent-on" class="option-card active" onclick="App.setDocent('듣기')">두부 가이드 ON</div>
-            <div id="docent-off" class="option-card" onclick="App.setDocent('조용히')">조용히 하기</div>
-        </div>
+        <span class="setup-label">3. 어떤 코스로 가볼까요?</span>
+        <select id="walkCourse" class="select-style" onchange="App.updateCourse(this.value)"></select>
+        <select id="runCourse" class="select-style" style="display:none;" onchange="App.updateCourse(this.value)"></select>
     </div>
     <button class="start-btn" onclick="App.start()">분석 시뮬레이션 시작!</button>
 </div>
 
-<div id="speed-widget">⏱️ 활동: <span id="mode-text">시뮬레이션</span><br>⚡ 속도: <span id="current-speed">6.0</span> km/h</div>
+<div id="speed-widget">⚡ 속도: <span id="current-speed">6.0</span> km/h</div>
 <div id="map"></div>
-<div class="map-controls">
-    <button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button>
-    <button class="control-btn" onclick="MapModule.centerMap()">📍</button>
-</div>
 <div id="panel">
     <div id="guideTitle">DUBU PROFESSIONAL INSIGHT</div>
-    <div id="guideText">경로를 로드 중입니다...</div>
-    <button id="finish-btn" class="end-btn" onclick="App.finish()">분석 마감</button>
-</div>
-
-<div id="summary-overlay">
-    <h1 style="color:var(--primary); margin-bottom:5px;">분석 리포트 완료! 🐾</h1>
-    <div class="summary-grid" id="summary-content"></div>
-    <button class="start-btn" onclick="location.reload()">메인으로</button>
+    <div id="guideText">음성 가이드 대기 중...</div>
+    <button class="end-btn" onclick="location.reload()">다시 시작</button>
 </div>
 
 <script>
 /**
- * 전문 도슨트 시나리오 (10초 주기 정밀 브리핑)
+ * 🎙️ 대기열 최적화 음성 시스템
  */
 const InfoModule = {
     audio: new Audio(),
+    isSpeaking: false,
     scripts: [
-        "두부 인텔리전스 연결되었습니다. 현재 분석 지점인 구성로 90 일대는 용인 플랫폼시티의 관문 입지로, GTX-A 개통 수혜와 함께 최근 지가 상승률이 기흥구 평균을 상회하는 핵심 거점입니다.",
-        "정면의 대단지 아파트를 확인하십시오. 최근 84타입 실거래가가 신고가 대비 90% 이상 회복되었으며, 외지인 매수 비중이 20%를 돌파하며 강력한 하방 경직성을 보이고 있습니다.",
-        "좌측의 상업 시설군은 역세권 지구단위계획 수립에 따른 상권 확장 구역입니다. 용구대로 확충 시 가시성 확보로 인한 임대료 15% 상승이 예상되는 고수익 우량 필지입니다.",
-        "우측 빌라촌은 현재 공공재개발 후보지 노후도 요건을 충족했습니다. 대지지분 가격이 인근 분양가 대비 현저히 저평가되어 있어 브랜드 단지 편입 시 시세 차익 극대화가 기대됩니다.",
-        "용구대로 2560 기점까지의 정밀 임장 분석을 마칩니다. 수집된 부동산 지표와 입지 분석 데이터를 리포트로 확인하십시오. 당신의 성공적인 자산 전략을 지지합니다."
-    ],
-    async speak(text, enabled) {
-        if(!enabled) return;
-        try {
-            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/7osWBIDUlEhEpEMcbqoW`, {
-                method: "POST",
-                headers: { "xi-api-key": "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e", "Content-Type": "application/json" },
-                body: JSON.stringify({ text, model_id: "eleven_multilingual_v2" })
-            });
-            const blob = await res.blob();
-            this.audio.src = URL.createObjectURL(blob);
-            this.audio.onended = () => { URL.revokeObjectURL(this.audio.src); };
-            this.audio.play();
-        } catch(e) {}
-    }
-};
-
-const MapModule = {
-    map: null, marker: null, rend: null, historyLine: null,
-    init() {
-        this.map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 37.3184, lng: 127.1105 }, zoom: 17, disableDefaultUI: true
-        });
-        this.rend = new google.maps.DirectionsRenderer({
-            map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6, strokeOpacity: 0.9 },
-            suppressMarkers: false
-        });
-        this.marker = new google.maps.Marker({
-            map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) }
-        });
-        // 지나간 흔적 (회색 점선)
-        this.historyLine = new google.maps.Polyline({
-            map: this.map, strokeColor: "#555", strokeOpacity: 0, strokeWeight: 4,
-            icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '15px' }]
-        });
-    },
-    drawRoute(points) {
-        const svc = new google.maps.DirectionsService();
-        svc.route({
-            origin: points[0], destination: points[1],
-            travelMode: 'WALKING'
-        }, (res) => { if(res) this.rend.setDirections(res); });
-    },
-    updateTrail(path) { this.historyLine.setPath(path); },
-    centerMap() { this.map.panTo(this.marker.getPosition()); },
-    toggleMapType() { this.map.setMapTypeId(this.map.getMapTypeId() === 'roadmap' ? 'hybrid' : 'roadmap'); }
-};
-
-const SoundModule = {
-    playClick() {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        osc.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.05);
-    }
-};
-
-const App = {
-    config: { docent: '듣기', speed: 6.0 },
-    state: { timer: null, step: 0, trail: [], startTime: null },
-
-    init() { MapModule.init(); },
-    setMode(m) { SoundModule.playClick(); document.getElementById('mode-text').innerText = m; },
-    setDocent(t) { SoundModule.playClick(); this.config.docent = t; },
-
-    start() {
-        SoundModule.playClick();
-        document.getElementById('overlay').style.display = 'none';
-        
-        // 가상 루트 지점 (구성로 90 -> 용구대로 2560)
-        const startPos = { lat: 37.3184, lng: 127.1105 };
-        const endPos = { lat: 37.3102, lng: 127.1082 };
-        
-        MapModule.drawRoute([startPos, endPos]);
-        this.state.startTime = new Date();
-        this.runSimulation(startPos, endPos);
-        InfoModule.speak(InfoModule.scripts[0], this.config.docent === '듣기');
-    },
-
-    // 6km/h 속도로 이동하는 시뮬레이션
-    runSimulation(start, end) {
-        let progress = 0;
-        const totalDuration = 50000; // 약 50초간 시뮬레이션 (발표용)
-        const interval = 100;
-
-        this.state.timer = setInterval(() => {
-            progress += interval / totalDuration;
-            if (progress >= 1) { this.finish(); return; }
-
-            const lat = start.lat + (end.lat - start.lat) * progress;
-            const lng = start.lng + (end.lng - start.lng) * progress;
-            const currentPos = { lat, lng };
-
-            MapModule.marker.setPosition(currentPos);
-            MapModule.map.panTo(currentPos);
-            
-            // 이동 흔적을 점선으로 업데이트
-            this.state.trail.push(currentPos);
-            MapModule.updateTrail(this.state.trail);
-
-            // 10초(진행도 약 20%) 마다 전문 브리핑 실행
-            const currentStep = Math.floor(progress * 5);
-            if (currentStep > this.state.step && currentStep < 5) {
-                this.state.step = currentStep;
-                const text = InfoModule.scripts[this.state.step];
-                InfoModule.speak(text, this.config.docent === '듣기');
-                document.getElementById('guideText').innerHTML = `<b>AI 브리핑</b><br>${text}`;
-            }
-        }, interval);
-    },
-
-    finish() {
-        clearInterval(this.state.timer);
-        InfoModule.speak(InfoModule.scripts[4], this.config.docent === '듣기');
-        document.getElementById('summary-content').innerHTML = `
-            <div class="summary-item"><label>이동 거리</label><value>1.3km</value></div>
-            <div class="summary-item"><label>평균 속도</label><value>6.0km/h</value></div>
-            <div class="summary-item"><label>지가 변동</label><value>+14.8%</value></div>
-            <div class="summary-item"><label>매물 가치</label><value>우수</value></div>
-        `;
-        document.getElementById('summary-overlay').style.display = 'flex';
-    }
-};
-
-window.onload = () => App.init();
-</script>
-</body>
-</html>
+        "두부 인텔리전스 시작합니다. 현재 분석 기점인 구성로 90은 '구성역 래미안 2차' 단지입니다. 삼성물산의 브랜드 파워와 함께 마북동 일대에서 가장 선호도 높은 대장주 단지 중 하나로 평가받습니다. 특히 용인 플랫폼시티의 수혜를 가장 근거리에서 받는 단지라는 점에 주목하며 분석을 시작합니다.",
+        "정면의 단지 조경과 건폐율을 확인하십시오. 마북 래미안 2차는 평지 중심의 안정적인 배치를 자랑하며, 단지 내부 산책로가 마북천 정비 사업 구간과 바로 연결되어 주거 쾌적성이 매우 우수합니다. 최근 GTX-A 용인역 개통에 따라 도보 역세권으로서의 가치가 재평가되며 전세가가 매매가를 강력하게 밀어 올리고 있습니다.",
+        "현재 통과 중인 인근 상업시설은 마북동 중심 학원가와 근
