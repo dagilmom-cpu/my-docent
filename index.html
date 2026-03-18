@@ -3,23 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 여유 있는 도슨트 모드</title>
+    <title>임장런 Pro - 지능형 도슨트</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; }
         body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
+        
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        
         .setup-group { margin-bottom: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
+        
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5F5; color: var(--primary); font-weight: 800; }
+        
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
         .dist-card.active { background: var(--primary); color: white; }
+        
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; margin-bottom: 10px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
+
         #map { height: 100vh; width: 100%; }
         #speed-widget { position: absolute; top: 20px; left: 20px; background: rgba(28,28,30,0.8); color: white; padding: 10px 15px; border-radius: 15px; z-index: 1000; font-weight: 700; font-size: 0.8rem; line-height: 1.4; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
@@ -36,10 +42,10 @@
         <p>구성로 90 래미안 2차 기점 정밀 분석</p>
     </div>
     <div class="setup-group">
-        <span class="setup-label">1. 분석 모드</span>
+        <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
-            <div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 정밀 도슨트</div>
-            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 고속 스캐닝</div>
+            <div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div>
+            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div>
         </div>
     </div>
     <div class="setup-group">
@@ -63,18 +69,136 @@
 <div id="map"></div>
 <div id="panel">
     <div id="guideTitle">DUBU PROFESSIONAL INSIGHT</div>
-    <div id="guideText">음성 가이드 대기 중...</div>
+    <div id="guideText">브리핑 대기 중입니다...</div>
     <button class="end-btn" onclick="location.reload()">다시 시작</button>
 </div>
 
 <script>
-/**
- * 🎙️ 대기열 최적화 음성 시스템
- */
 const InfoModule = {
     audio: new Audio(),
     isSpeaking: false,
     scripts: [
         "두부 인텔리전스 시작합니다. 현재 분석 기점인 구성로 90은 '구성역 래미안 2차' 단지입니다. 삼성물산의 브랜드 파워와 함께 마북동 일대에서 가장 선호도 높은 대장주 단지 중 하나로 평가받습니다. 특히 용인 플랫폼시티의 수혜를 가장 근거리에서 받는 단지라는 점에 주목하며 분석을 시작합니다.",
-        "정면의 단지 조경과 건폐율을 확인하십시오. 마북 래미안 2차는 평지 중심의 안정적인 배치를 자랑하며, 단지 내부 산책로가 마북천 정비 사업 구간과 바로 연결되어 주거 쾌적성이 매우 우수합니다. 최근 GTX-A 용인역 개통에 따라 도보 역세권으로서의 가치가 재평가되며 전세가가 매매가를 강력하게 밀어 올리고 있습니다.",
-        "현재 통과 중인 인근 상업시설은 마북동 중심 학원가와 근
+        "정면의 단지 조경과 건폐율을 확인하십시오. 마북 래미안 2차는 평지 중심의 안정적인 배치를 자랑하며, 단지 내부 산책로가 마북천 정비 사업 구간과 바로 연결되어 주거 쾌적성이 매우 우수합니다. 최근 GTX-A 용인역 개통에 따라 도보 역세권으로서의 가치가 재평가되며 30평형대 전세가가 매매가를 강력하게 밀어 올리고 있습니다.",
+        "현재 통과 중인 인근 상업시설은 마북동 중심 학원가와 근린 상권이 결합된 형태입니다. 플랫폼시티 내 대규모 상업 용지가 개발되더라도, 래미안 단지를 포함한 약 3,000세대 고정 배후 수요를 확보하고 있어 상권의 응집력이 매우 뛰어납니다. 특히 1층 핵심 점포의 손바뀜이 거의 없는 우량 상권입니다.",
+        "좌측의 도로망 확충 계획에 주목하십시오. 용구대로 변의 확장 공사와 보행 환경 개선 사업이 완료되면 마북동에서 구성역까지의 접근성은 더욱 향상될 것입니다. 래미안 2차는 이러한 인프라 개선의 최대 수혜지로, 향후 신축 브랜드 단지들과의 시세 동조화를 통해 추가적인 가치 상승 모멘텀이 충분한 전략적 투자 요지입니다.",
+        "정밀 분석을 마칩니다. 래미안 2차의 입지 점수와 플랫폼시티 연결 지표를 기반으로 리포트를 생성했습니다. 성공적인 임장 분석을 위한 두부의 최종 가이드를 확인하십시오."
+    ],
+    async speak(text) {
+        if (this.isSpeaking) return;
+        this.isSpeaking = true;
+        try {
+            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/7osWBIDUlEhEpEMcbqoW`, {
+                method: "POST",
+                headers: { "xi-api-key": "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e", "Content-Type": "application/json" },
+                body: JSON.stringify({ text, model_id: "eleven_multilingual_v2" })
+            });
+            const blob = await res.blob();
+            this.audio.src = URL.createObjectURL(blob);
+            
+            return new Promise((resolve) => {
+                this.audio.onended = () => {
+                    URL.revokeObjectURL(this.audio.src);
+                    // 10초 대기 후 다음 멘트 가능하게 설정
+                    setTimeout(() => {
+                        this.isSpeaking = false;
+                        resolve();
+                    }, 10000); 
+                };
+                this.audio.play();
+            });
+        } catch(e) { this.isSpeaking = false; }
+    }
+};
+
+const CourseData = {
+    '걷기': {
+        1: { name: "🏡 마북 래미안 2차 가치 분석", start: "37.3184,127.1105", end: "37.3102,127.1082" },
+        3: { name: "🌳 마북천 수변 프리미엄 탐방", start: "37.3184,127.1105", end: "37.3120,127.1160" },
+        5: { name: "☕ 구성역 상권 유동성 분석", start: "37.3184,127.1105", end: "37.3150,127.1060" },
+        10: { name: "🏗️ 플랫폼시티 핵심 벨트 답사", start: "37.3184,127.1105", end: "37.3050,127.1000" }
+    },
+    '러닝': {
+        1: { name: "⚡ GTX-A 용인역 수혜권 스캐닝", start: "37.3184,127.1105", end: "37.3110,127.1050" },
+        3: { name: "🏃 탄천-마북천 주거환경 스캔", start: "37.3184,127.1105", end: "37.3210,127.1010" },
+        5: { name: "🔥 언남-마북 갭투자 정밀 분석", start: "37.3184,127.1105", end: "37.3240,127.1150" },
+        10: { name: "🏅 기흥구 중심축 시장 매핑", start: "37.3184,127.1105", end: "37.3300,127.1000" }
+    }
+};
+
+const MapModule = {
+    map: null, marker: null, rend: null, history: [], historyLine: null,
+    init() {
+        this.map = new google.maps.Map(document.getElementById("map"), { center: { lat: 37.3184, lng: 127.1105 }, zoom: 17, disableDefaultUI: true });
+        this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6, strokeOpacity: 0.9 }, suppressMarkers: false });
+        this.marker = new google.maps.Marker({ map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) } });
+        this.historyLine = new google.maps.Polyline({ map: this.map, strokeColor: "#555", strokeWeight: 4, icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, repeat: '15px' }] });
+    },
+    async getPath(pts) {
+        return new Promise((res) => {
+            new google.maps.DirectionsService().route({ origin: pts[0], destination: pts[1], travelMode: 'WALKING' }, (r, s) => {
+                if (s === 'OK') { this.rend.setDirections(r); res(r.routes[0].overview_path); }
+            });
+        });
+    }
+};
+
+const App = {
+    config: { mode: '걷기', dist: 1, course: null },
+    state: { step: 0 },
+    init() { MapModule.init(); this.renderOptions(); },
+    renderOptions() {
+        const wSel = document.getElementById('walkCourse'); const rSel = document.getElementById('runCourse');
+        wSel.innerHTML = ""; rSel.innerHTML = "";
+        Object.entries(CourseData['걷기']).forEach(([d, o]) => wSel.innerHTML += `<option value="${d}">${o.name}</option>`);
+        Object.entries(CourseData['러닝']).forEach(([d, o]) => rSel.innerHTML += `<option value="${d}">${o.name}</option>`);
+        this.updateCourse(wSel.value);
+    },
+    setMode(m) {
+        this.config.mode = m;
+        document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card';
+        document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card';
+        document.getElementById('walkCourse').style.display = m === '걷기' ? 'block' : 'none';
+        document.getElementById('runCourse').style.display = m === '러닝' ? 'block' : 'none';
+        this.updateCourse(m === '걷기' ? document.getElementById('walkCourse').value : document.getElementById('runCourse').value);
+    },
+    setDist(el, d) {
+        document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active'); this.config.dist = d; this.updateCourse(d);
+    },
+    updateCourse(k) { this.config.course = CourseData[this.config.mode][k]; },
+    async start() {
+        document.getElementById('overlay').style.display = 'none';
+        const s = this.config.course.start.split(',').map(Number);
+        const e = this.config.course.end.split(',').map(Number);
+        const path = await MapModule.getPath([{lat: s[0], lng: s[1]}, {lat: e[0], lng: e[1]}]);
+        
+        let i = 0;
+        const move = setInterval(async () => {
+            if (i >= path.length) { 
+                clearInterval(move); 
+                InfoModule.speak(InfoModule.scripts[4]); 
+                return; 
+            }
+            
+            // 음성 재생 중이 아닐 때만 다음 위치로 이동 (동기화 로직)
+            if (!InfoModule.isSpeaking) {
+                const pos = path[i];
+                MapModule.marker.setPosition(pos); MapModule.map.panTo(pos);
+                MapModule.history.push(pos); MapModule.historyLine.setPath(MapModule.history);
+                
+                // 특정 시점에 브리핑 시작
+                if (i % Math.floor(path.length / 4) === 0 && this.state.step < 4) {
+                    const text = InfoModule.scripts[this.state.step++];
+                    document.getElementById('guideText').innerHTML = `<b>부동산 도슨트</b><br>${text}`;
+                    InfoModule.speak(text);
+                }
+                i++;
+            }
+        }, 1300);
+    }
+};
+window.onload = () => App.init();
+</script>
+</body>
+</html>
