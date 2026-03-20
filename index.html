@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 두부 실시간 모드</title>
+    <title>임장런 Pro - 두부 가상 모드</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; --orange: #FF9500; }
-        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
-        .header-section { margin-bottom: 25px; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
-        .header-section p { color: var(--gray); margin-top: 5px; font-size: 0.95rem; }
         .setup-group { margin-bottom: 20px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.95rem; font-weight: 500; }
+        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5F5; color: var(--primary); font-weight: 800; }
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
@@ -24,29 +22,13 @@
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
         
         #map { height: 100vh; width: 100%; }
-
-        /* 🗺️ 네비게이션 위젯 (기존보다 콤팩트하게 사이즈 축소) */
-        #navi-widget { 
-            position: absolute; top: 15px; left: 50%; transform: translateX(-50%); 
-            width: 70%; background: var(--orange); color: white; padding: 8px 15px; 
-            border-radius: 12px; z-index: 3000; display: none; align-items: center; gap: 10px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-        }
+        #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 70%; background: var(--orange); color: white; padding: 8px 15px; border-radius: 12px; z-index: 3000; display: none; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .navi-icon { font-size: 1.4rem; font-weight: 900; }
-        .navi-text { flex: 1; }
-        .navi-dist { font-size: 0.95rem; font-weight: 800; line-height: 1; }
-        .navi-msg { font-size: 0.65rem; opacity: 0.9; margin-top: 2px; white-space: nowrap; }
-
         #speed-widget { position: absolute; top: 15px; left: 15px; background: rgba(28,28,30,0.8); color: white; padding: 8px 12px; border-radius: 10px; z-index: 900; font-weight: 700; font-size: 0.7rem; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; height: 3em; overflow: hidden; }
+        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); height: 3em; overflow: hidden; }
         .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; cursor: pointer; }
-        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 4000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 20px 0; }
-        .summary-item { background: var(--light); padding: 15px; border-radius: 20px; text-align: center; }
-        .map-controls { position: absolute; right: 20px; bottom: 200px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
-        .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 18px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
@@ -55,15 +37,12 @@
     <div class="navi-icon">↑</div>
     <div class="navi-text">
         <div class="navi-dist"><span id="navi-m">450</span>m</div>
-        <div class="navi-msg">보정역 1번 출구 방면 직진</div>
+        <div style="font-size: 0.65rem; opacity: 0.9;">보정역 방면 분석 이동 중</div>
     </div>
 </div>
 
 <div id="overlay">
-    <div class="header-section">
-        <h1>임장런 with 두부 🐾</h1>
-        <p>구성로 90 기점 실시간 가치 분석</p>
-    </div>
+    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>구성로 90 기점 가상 시뮬레이션</p></div>
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
@@ -81,109 +60,30 @@
         </div>
     </div>
     <div class="setup-group">
-        <span class="setup-label">3. 임장 분석 코스 선택</span>
-        <select id="walkCourse" class="select-style" onchange="App.updateCourse(this.value)"></select>
-        <select id="runCourse" class="select-style" style="display:none;" onchange="App.updateCourse(this.value)"></select>
+        <span class="setup-label">3. 분석 코스</span>
+        <select id="activeCourse" class="select-style"></select>
     </div>
-    <div class="setup-group">
-        <span class="setup-label">4. 가이드 음성</span>
-        <div class="card-grid">
-            <div id="docent-on" class="option-card active" onclick="App.setDocent('듣기')">두부 가이드 ON</div>
-            <div id="docent-off" class="option-card" onclick="App.setDocent('조용히')">조용히 하기</div>
-        </div>
-    </div>
-    <button class="start-btn" onclick="App.start()">분석 시작!</button>
+    <button class="start-btn" onclick="App.start()">시뮬레이션 시작!</button>
 </div>
 
-<div id="speed-widget">⚡ 현재: <span id="current-speed">0.0</span> km/h</div>
+<div id="speed-widget">⚡ 가상 속도: <span id="current-speed">6.0</span> km/h</div>
 <div id="map"></div>
-<div class="map-controls">
-    <button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button>
-    <button class="control-btn" onclick="MapModule.centerMap()">📍</button>
-</div>
 <div id="panel">
-    <div id="guideTitle">DUBU MARKET INSIGHT</div>
-    <div id="guideText">두부가 지도를 분석 중입니다...</div>
-    <button id="finish-btn" class="end-btn" onclick="App.finish()">걷기 종료</button>
-</div>
-
-<div id="summary-overlay">
-    <h1 style="color:var(--primary); margin-bottom:5px;">분석 리포트 완료! 🐾</h1>
-    <div class="summary-grid" id="summary-content"></div>
-    <button class="start-btn" onclick="location.reload()">메인으로</button>
+    <div id="guideTitle">DUBU SIMULATION MODE</div>
+    <div id="guideText">준비 완료! 시작 버튼을 눌러주세요.</div>
+    <button class="end-btn" onclick="location.reload()">다시 시작</button>
 </div>
 
 <script>
-const START_POS = { lat: 37.31845, lng: 127.11052 };
-
-const CourseData = {
-    '걷기': {
-        1: { name: "🏡 래미안 2차 → 구성초 분석", dest: "37.315,127.108", waypts: ["37.317,127.110"] },
-        3: { name: "🌳 마북천 수변 보정역 탐방", dest: "37.312,127.108", waypts: ["37.315,127.109"] },
-        5: { name: "☕ 보정동 카페거리 상권 유동성", dest: "37.321,127.109", waypts: ["37.318,127.110"] },
-        10: { name: "🏗️ 플랫폼시티-보정역 핵심벨트", dest: "37.295,127.115", waypts: ["37.305,127.110"] }
-    },
-    '러닝': {
-        1: { name: "⚡ 보정역 GTX 수혜권 스캔", dest: "37.311,127.105", waypts: ["37.315,127.108"] },
-        3: { name: "🏃 탄천-구성로 배후단지 임장", dest: "37.321,127.101", waypts: ["37.318,127.105"] },
-        5: { name: "🔥 보정동 대단지 갭투자 분석", dest: "37.324,127.115", waypts: ["37.330,127.120"] },
-        10: { name: "🏅 기흥구 시장 강도 매핑", dest: "37.330,127.100", waypts: ["37.340,127.110"] }
-    }
-};
-
-const SoundModule = {
-    playClick() {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    }
-};
-
-const MapModule = {
-    map: null, marker: null, svc: null, rend: null, historyLine: null,
-    init() {
-        this.map = new google.maps.Map(document.getElementById("map"), { center: START_POS, zoom: 17, disableDefaultUI: true });
-        this.svc = new google.maps.DirectionsService();
-        this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 }, suppressMarkers: false });
-        this.marker = new google.maps.Marker({ map: this.map, position: START_POS, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(35, 35) } });
-        this.historyLine = new google.maps.Polyline({
-            map: this.map, strokeColor: "#555", strokeOpacity: 0.6, strokeWeight: 4,
-            icons: [{ icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 }, offset: '0', repeat: '15px' }]
-        });
-    },
-    drawRoute(start, courseObj, mode) {
-        if (!courseObj) return;
-        const destArr = courseObj.dest.split(',').map(Number);
-        const wps = courseObj.waypts.map(p => ({ location: new google.maps.LatLng(...p.split(',').map(Number)), stopover: false }));
-        this.svc.route({
-            origin: START_POS, destination: { lat: destArr[0], lng: destArr[1] },
-            waypoints: wps, optimizeWaypoints: true,
-            travelMode: mode === '러닝' ? 'BICYCLING' : 'WALKING'
-        }, (res, status) => {
-            if (status === 'OK') {
-                this.rend.setDirections(res);
-                document.getElementById('guideText').innerHTML = `<b>${courseObj.name}</b> 코스 분석을 시작합니다.`;
-                document.getElementById('navi-widget').style.display = 'flex'; // 분석 시작 시 위젯 등장
-            }
-        });
-    },
-    updateTrail(path) { this.historyLine.setPath(path); },
-    centerMap() { this.map.panTo(this.marker.getPosition()); },
-    toggleMapType() { this.map.setMapTypeId(this.map.getMapTypeId() === 'roadmap' ? 'hybrid' : 'roadmap'); }
-};
+// 📍 실제 GPS 무시, 구성로 90으로 위치 강제 고정
+const FIXED_START = { lat: 37.31845, lng: 127.11052 };
 
 const InfoModule = {
     audio: new Audio(),
-    scripts: [
-        "두부 인텔리전스 연결되었습니다. 현재 분석 중인 용인 구성-보정 라인은 플랫폼시티와 GTX-A 수혜가 집중되는 핵심 연결축입니다.",
-        "좌측의 아파트 단지를 주목하세요. 보정역 접근성에 따라 최근 실거래가가 전고점의 85% 이상 회복되었으며, 갭투자 수요가 유입되는 지점입니다.",
-        "구성로 변 상권에 주목하세요. 마북천 정비와 함께 유동인구 증가가 예상되는 요지로, 공실률이 매우 낮은 투자 지역입니다.",
-        "오늘의 전문 임장 분석을 마칩니다. 요약 리포트를 통해 수집된 부동산 지표를 확인하시고, 성공적인 자산 전략을 수립하시기 바랍니다."
-    ],
-    async speak(text, enabled) {
-        if(!enabled) return;
+    async speak(text) {
         try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            if (ctx.state === 'suspended') await ctx.resume();
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/7osWBIDUlEhEpEMcbqoW`, {
                 method: "POST",
                 headers: { "xi-api-key": "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e", "Content-Type": "application/json" },
@@ -196,92 +96,55 @@ const InfoModule = {
     }
 };
 
+const CourseData = {
+    '걷기': { 1: { name: "🏡 래미안 2차 → 보정역 입지 분석", end: {lat: 37.3121, lng: 127.1082} } },
+    '러닝': { 1: { name: "🏃 GTX-A 용인역 수혜권 스캔", end: {lat: 37.3110, lng: 127.1052} } }
+};
+
+const MapModule = {
+    map: null, marker: null, rend: null, trail: [], line: null,
+    init() {
+        this.map = new google.maps.Map(document.getElementById("map"), { center: FIXED_START, zoom: 17, disableDefaultUI: true });
+        this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 } });
+        this.marker = new google.maps.Marker({ map: this.map, position: FIXED_START, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(40, 40) } });
+        this.line = new google.maps.Polyline({ map: this.map, strokeColor: "#555", strokeWeight: 4, icons: [{icon:{path:'M 0,-1 0,1', strokeOpacity:1, scale:3}, repeat:'15px'}] });
+    },
+    async getPath(dest) {
+        return new Promise(res => {
+            new google.maps.DirectionsService().route({ origin: FIXED_START, destination: dest, travelMode: 'WALKING' }, (r, s) => {
+                if (s === 'OK') { this.rend.setDirections(r); res(r.routes[0].overview_path); }
+            });
+        });
+    }
+};
+
 const App = {
-    config: { mode: '걷기', dist: 1, docent: '듣기', course: null },
-    state: { watchId: null, startTime: null, totalDist: 0, lastPos: null, step: 0, trail: [] },
-
-    init() { MapModule.init(); this.renderCourseOptions(); },
-    renderCourseOptions() {
-        const walkSel = document.getElementById('walkCourse');
-        const runSel = document.getElementById('runCourse');
-        walkSel.innerHTML = ""; runSel.innerHTML = "";
-        Object.entries(CourseData['걷기']).forEach(([d, obj]) => walkSel.innerHTML += `<option value="${d}">${obj.name}</option>`);
-        Object.entries(CourseData['러닝']).forEach(([d, obj]) => runSel.innerHTML += `<option value="${d}">${obj.name}</option>`);
-        this.updateCourse(walkSel.value);
+    config: { mode: '걷기', dist: 1 },
+    init() { MapModule.init(); this.renderOptions(); },
+    renderOptions() {
+        const sel = document.getElementById('activeCourse'); sel.innerHTML = "";
+        Object.entries(CourseData[this.config.mode]).forEach(([d, o]) => sel.innerHTML += `<option value="${d}">${o.name}</option>`);
     },
-    setMode(m) {
-        SoundModule.playClick(); this.config.mode = m;
-        document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card';
-        document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card';
-        document.getElementById('walkCourse').style.display = m === '걷기' ? 'block' : 'none';
-        document.getElementById('runCourse').style.display = m === '러닝' ? 'block' : 'none';
-        document.getElementById('mode-text').innerText = m;
-        const val = m === '걷기' ? document.getElementById('walkCourse').value : document.getElementById('runCourse').value;
-        this.updateCourse(val);
-    },
-    setDist(el, d) {
-        SoundModule.playClick();
-        document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active'));
-        el.classList.add('active'); this.config.dist = d;
-        if (this.config.mode === '걷기') document.getElementById('walkCourse').value = d;
-        else document.getElementById('runCourse').value = d;
-        this.updateCourse(d);
-    },
-    updateCourse(distKey) { this.config.course = CourseData[this.config.mode][distKey]; },
-    setDocent(t) {
-        SoundModule.playClick(); this.config.docent = t;
-        document.getElementById('docent-on').classList.toggle('active', t === '듣기');
-        document.getElementById('docent-off').classList.toggle('active', t === '조용히');
-    },
-    start() {
-        SoundModule.playClick();
-        this.state.startTime = new Date();
+    setMode(m) { this.config.mode = m; this.renderOptions(); document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card'; document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card'; },
+    setDist(el, d) { document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active')); el.classList.add('active'); },
+    async start() {
+        InfoModule.audio.play().catch(() => {});
         document.getElementById('overlay').style.display = 'none';
-        MapModule.drawRoute(START_POS, this.config.course, this.config.mode);
-        this.track();
-        InfoModule.speak(InfoModule.scripts[0], this.config.docent === '듣기');
-        this.state.step = 1;
-    },
-    track() {
-        this.state.watchId = navigator.geolocation.watchPosition(pos => {
-            const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            MapModule.marker.setPosition(p);
-            this.state.trail.push(p); MapModule.updateTrail(this.state.trail);
-            let s = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
-            if (s < 1.2) s = 0;
-            document.getElementById('current-speed').innerText = s.toFixed(1);
-            
-            let m = parseInt(document.getElementById('navi-m').innerText);
-            if(m > 10) document.getElementById('navi-m').innerText = m - 5;
+        document.getElementById('navi-widget').style.display = 'flex';
+        
+        const path = await MapModule.getPath(CourseData[this.config.mode][1].end);
+        InfoModule.speak("두부 가상 임장을 시작합니다. 현재 구성로 90 래미안 2차에 위치하고 있습니다.");
+        document.getElementById('guideText').innerText = "가상 시뮬레이션을 시작합니다. 캐릭터의 이동을 확인하세요.";
 
-            if (this.state.lastPos && s > 0) {
-                const d = google.maps.geometry.spherical.computeDistanceBetween(
-                    new google.maps.LatLng(this.state.lastPos.lat, this.state.lastPos.lng),
-                    new google.maps.LatLng(p.lat, p.lng)
-                );
-                if (d > 2.0) {
-                    this.state.totalDist += d;
-                    if (this.state.totalDist > this.state.step * 400 && this.state.step < 3) {
-                        InfoModule.speak(InfoModule.scripts[this.state.step++], this.config.docent === '듣기');
-                        document.getElementById('guideText').innerHTML = `<b>두부 브리핑</b><br>${InfoModule.scripts[this.state.step-1]}`;
-                    }
-                }
-            }
-            this.state.lastPos = p;
-        }, null, { enableHighAccuracy: true });
-    },
-    finish() {
-        SoundModule.playClick(); navigator.geolocation.clearWatch(this.state.watchId);
-        const min = ((new Date() - this.state.startTime) / 60000).toFixed(1);
-        const km = (this.state.totalDist / 1000).toFixed(2);
-        InfoModule.speak(InfoModule.scripts[3], this.config.docent === '듣기');
-        document.getElementById('summary-content').innerHTML = `
-            <div class="summary-item"><label>분석 시간</label><value>${min}분</value></div>
-            <div class="summary-item"><label>분석 거리</label><value>${km}km</value></div>
-            <div class="summary-item"><label>에너지</label><value>${Math.floor(km * 60)}</value></div>
-            <div class="summary-item"><label>분석 지점</label><value>${this.state.step}곳</value></div>
-        `;
-        document.getElementById('summary-overlay').style.display = 'flex';
+        let i = 0;
+        const move = setInterval(() => {
+            if (i >= path.length) { clearInterval(move); return; }
+            const pos = path[i];
+            MapModule.marker.setPosition(pos); MapModule.map.panTo(pos);
+            MapModule.trail.push(pos); MapModule.line.setPath(MapModule.trail);
+            document.getElementById('navi-m').innerText = Math.max(0, 450 - (i * 15));
+            i++;
+        }, 1200);
     }
 };
 window.onload = () => App.init();
