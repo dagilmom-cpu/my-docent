@@ -3,79 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 카카오 최종</title>
+    <title>임장런 Pro - 카카오 실시간 모드</title>
     
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=fc0e1252de533a43104fe5566190be9c&libraries=services,clusterer,drawing&autoload=false"></script>
 
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; --orange: #FF9500; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; color: var(--dark); }
+        
+        /* 설정 레이어 */
         #overlay { position: fixed; inset: 0; background: white; z-index: 5000; padding: 30px 25px; display: flex; flex-direction: column; overflow-y: auto; }
-        .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); }
-        .setup-group { margin-bottom: 18px; }
+        .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
+        .setup-group { margin-bottom: 20px; }
+        .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 10px; display: block; }
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; }
+        .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; font-size: 0.95rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5F5; color: var(--primary); font-weight: 800; }
         .dist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .dist-card { background: var(--light); border-radius: 12px; padding: 10px 0; text-align: center; font-weight: 700; cursor: pointer; }
+        .dist-card { background: var(--light); border-radius: 12px; padding: 12px 0; text-align: center; font-weight: 700; cursor: pointer; }
         .dist-card.active { background: var(--primary); color: white; }
-        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; }
-        .start-btn { margin-top: 20px; width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: 800; font-size: 1.2rem; }
+        .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; appearance: none; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM4RThFOTMiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSI2IDkgMTIgMTUgMTggOSI+PC9wb2x5bGluZT48L3N2Zz4='); background-repeat: no-repeat; background-position: right 15px center; background-size: 18px; }
+        .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
+
+        #map { width: 100%; height: 100%; background: #f0f0f0; }
+
+        /* 위젯 및 패널 */
+        #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; background: var(--orange); color: white; padding: 10px 15px; border-radius: 15px; z-index: 3000; display: none; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        #speed-widget { position: absolute; top: 80px; left: 15px; background: rgba(28,28,30,0.8); color: white; padding: 8px 12px; border-radius: 10px; z-index: 900; font-weight: 700; font-size: 0.75rem; }
+        #panel { position: absolute; bottom: 0; width: 100%; min-height: 200px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box; display: none; }
+        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+        #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow-y: auto; }
         
-        /* 📍 지도 영역 (배경색을 넣어 로딩 여부 확인) */
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f0f0f0; z-index: 10; }
-        
-        #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; background: var(--orange); color: white; padding: 10px 15px; border-radius: 15px; z-index: 3000; display: none; align-items: center; gap: 10px; }
-        #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 25px 25px 0 0; padding: 20px; z-index: 100; box-sizing: border-box; display: none; }
         .map-controls { position: absolute; right: 20px; bottom: 240px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
-        .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .exit-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; margin-top: 10px; }
+
+        /* 리포트 오버레이 */
+        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 6000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 30px 0; }
+        .summary-item { background: var(--light); padding: 20px; border-radius: 20px; }
+        .summary-item label { display: block; font-size: 0.75rem; color: var(--gray); margin-bottom: 5px; }
+        .summary-item value { font-size: 1.2rem; font-weight: 800; color: var(--dark); }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <div style="margin-bottom: 25px;"><h1>임장런 with 두부 🐾</h1><p style="color:var(--gray);">구성로 90 기점 시뮬레이션</p></div>
-    <div class="setup-group"><span style="font-size:0.85rem; font-weight:700; color:var(--gray);">1. 템포</span><div class="card-grid"><div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div><div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div></div></div>
-    <div class="setup-group"><span style="font-size:0.85rem; font-weight:700; color:var(--gray);">2. 거리</span><div class="dist-grid"><div id="d1" class="dist-card active" onclick="App.setDist(this, 1)">1km</div><div id="d3" class="dist-card" onclick="App.setDist(this, 3)">3km</div><div id="d5" class="dist-card" onclick="App.setDist(this, 5)">5km</div><div id="d10" class="dist-card" onclick="App.setDist(this, 10)">10km</div></div></div>
-    <div class="setup-group"><span style="font-size:0.85rem; font-weight:700; color:var(--gray);">3. 코스</span><select id="activeCourse" class="select-style" onchange="App.updateCourse(this.value)"></select></div>
+    <div class="header-section">
+        <h1>임장런 with 두부 🐾</h1>
+        <p>구성로 90 기점 실시간 가치 분석</p>
+    </div>
+    <div class="setup-group">
+        <span class="setup-label">1. 오늘 나의 템포</span>
+        <div class="card-grid">
+            <div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div>
+            <div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div>
+        </div>
+    </div>
+    <div class="setup-group">
+        <span class="setup-label">2. 목표 거리</span>
+        <div class="dist-grid">
+            <div id="d1" class="dist-card active" onclick="App.setDist(this, 1)">1km</div>
+            <div id="d3" class="dist-card" onclick="App.setDist(this, 3)">3km</div>
+            <div id="d5" class="dist-card" onclick="App.setDist(this, 5)">5km</div>
+            <div id="d10" class="dist-card" onclick="App.setDist(this, 10)">10km</div>
+        </div>
+    </div>
+    <div class="setup-group">
+        <span class="setup-label">3. 임장 분석 코스 선택</span>
+        <select id="activeCourse" class="select-style" onchange="App.updateCourse(this.value)"></select>
+    </div>
+    <div class="setup-group">
+        <span class="setup-label">4. 가이드 음성</span>
+        <div class="card-grid">
+            <div id="docent-on" class="option-card active" onclick="App.setDocent('듣기')">두부 가이드 ON</div>
+            <div id="docent-off" class="option-card" onclick="App.setDocent('조용히')">조용히 하기</div>
+        </div>
+    </div>
     <button class="start-btn" onclick="App.start()">분석 시작! 🚀</button>
 </div>
 
+<div id="navi-widget">
+    <div style="font-size: 1.5rem; font-weight: 900;">↑</div>
+    <div style="flex:1">
+        <div style="font-size: 1rem; font-weight: 800;"><span id="navi-m">450</span>m</div>
+        <div style="font-size: 0.65rem; opacity: 0.9;">보정역 방면 시뮬레이션 중</div>
+    </div>
+</div>
+
+<div id="speed-widget">⚡ 현재: <span id="current-speed">0.0</span> km/h</div>
+
 <div id="map"></div>
-
-<div id="navi-widget"><div style="font-size:1.5rem;">↑</div><div style="flex:1"><div style="font-size:1rem; font-weight:800;"><span id="navi-m">450</span>m</div><div style="font-size:0.65rem;">보정역 방면 시뮬레이션 중</div></div></div>
-
 <div class="map-controls">
     <button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button>
     <button class="control-btn" onclick="MapModule.centerMap()">📍</button>
 </div>
 
 <div id="panel">
-    <div id="guideTitle" style="font-size:0.8rem; font-weight:800; color:var(--primary);">DUBU DEEP INSIGHT</div>
-    <div id="guideText" style="font-size:0.95rem; font-weight:600; line-height:1.6; height:5.5em; overflow-y:auto;">데이터 수집 중...</div>
-    <button class="start-btn" style="padding:12px; font-size:14px; background:var(--dark);" onclick="location.reload()">다시 시작</button>
+    <div id="guideTitle">DUBU DEEP INSIGHT</div>
+    <div id="guideText">데이터 수집 중...</div>
+    <button class="exit-btn" onclick="App.finish()">임장 종료 및 리포트 저장</button>
+</div>
+
+<div id="summary-overlay">
+    <h1 style="color:var(--primary);">임장 리포트 완료! 🐾</h1>
+    <div class="summary-grid" id="summary-content"></div>
+    <button class="start-btn" onclick="location.reload()">메인으로 돌아가기</button>
 </div>
 
 <script>
-const ELEVENLABS_API_KEY = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
-const VOICE_ID = "7osWBIDUlEpEpEMcbqoW";
 const FIXED_START = { lat: 37.31845, lng: 127.11052 };
+
+const CourseData = {
+    '걷기': {
+        1: { name: "🏡 래미안 2차 → 보정역 입지 분석", end: {lat: 37.3121, lng: 127.1082} },
+        3: { name: "🌳 마북천 수변 산책로 코스", end: {lat: 37.3050, lng: 127.1050} },
+        5: { name: "☕ 보정동 카페거리 상권 투어", end: {lat: 37.3210, lng: 127.1090} },
+        10: { name: "🏗️ 플랫폼시티 전체 주거 벨트", end: {lat: 37.2950, lng: 127.1150} }
+    },
+    '러닝': {
+        1: { name: "⚡ GTX 용인역 수혜권 고속 스캔", end: {lat: 37.3110, lng: 127.1052} },
+        3: { name: "🏃 구성로 핵심 상권 주행 분석", end: {lat: 37.3250, lng: 127.1150} },
+        5: { name: "🔥 신갈-구성역 갭투자 분석", end: {lat: 37.2950, lng: 127.1050} },
+        10: { name: "🏅 기흥구 부동산 시장 강도 런", end: {lat: 37.3400, lng: 127.0950} }
+    }
+};
 
 const InfoModule = {
     audio: new Audio(),
     scripts: [
-        "안녕하세요, 부동산 도슨트 두부입니다. 지금부터 구성로 90, '구성역 래미안 2차' 단지를 기점으로 보정역 방면 분석 시뮬레이션을 시작하겠습니다.",
-        "현재 단지 앞 마북천 정비 사업 구간은 입주민들의 삶의 질을 높이는 핵심 프리미엄 인프라입니다.",
-        "구성로 상업시설은 전형적인 항아리 상권으로, 플랫폼시티 완공 시 대규모 인구 유입의 낙수 효과를 누릴 지역입니다.",
-        "보정역 기점에 도달했습니다. 래미안 2차는 미래 도시 계획의 가장 앞자리에 위치해 있습니다. 오늘의 임장 분석을 마칩니다."
+        "안녕하세요, 부동산 도슨트 두부입니다. 지금부터 구성로 90, '구성역 래미안 2차' 단지를 기점으로 보정역 방면 분석 시뮬레이션을 시작하겠습니다. 이곳은 플랫폼시티와 가장 밀접하게 연결된 핵심 주거지입니다.",
+        "현재 단지 앞 마북천 정비 사업 구간은 입주민들의 삶의 질을 높이는 프리미엄 인프라입니다. 과거 단순 하천에서 수변 공원화가 진행되며 지가 상승의 강력한 동력이 되고 있습니다.",
+        "구성로 상업시설은 전형적인 항아리 상권으로, 배후 3천 세대의 고정 수요를 확보하고 있습니다. 플랫폼시티 완공 시 인구 유입의 낙수 효과를 가장 먼저 누릴 지역입니다.",
+        "보정역 기점에 도달했습니다. 래미안 2차는 미래 도시 계획의 가장 앞자리에 위치해 있으며, GTX-A 개통으로 강남 10분대 생활권에 편입되었습니다. 오늘의 임장 분석을 마칩니다."
     ],
-    async speak(text) {
+    async speak(text, enabled) {
+        if (!enabled) return;
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             if (ctx.state === 'suspended') await ctx.resume();
-            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+            const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/7osWBIDUlEhEpEMcbqoW`, {
                 method: "POST",
-                headers: { "xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json" },
+                headers: { "xi-api-key": "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e", "Content-Type": "application/json" },
                 body: JSON.stringify({ text, model_id: "eleven_multilingual_v2" })
             });
             const blob = await res.blob();
@@ -85,72 +154,89 @@ const InfoModule = {
     }
 };
 
-const CourseData = {
-    '걷기': { 1: { name: "🏡 [걷기] 래미안 2차 → 보정역 분석", end: {lat: 37.3121, lng: 127.1082} } },
-    '러닝': { 1: { name: "⚡ [러닝] GTX 용인역 수혜권 스캔", end: {lat: 37.3110, lng: 127.1052} } }
-};
-
 const MapModule = {
-    map: null, marker: null,
+    map: null, marker: null, polyline: null, trail: [],
     init() {
-        // 🛡️ 카카오 엔진이 완전히 로드된 후 지도를 그림
         kakao.maps.load(() => {
             const container = document.getElementById('map');
             const pos = new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng);
             this.map = new kakao.maps.Map(container, { center: pos, level: 3 });
             this.marker = new kakao.maps.Marker({ position: pos });
             this.marker.setMap(this.map);
+            this.polyline = new kakao.maps.Polyline({
+                strokeWeight: 6, strokeColor: '#FF3B30', strokeOpacity: 0.8, strokeStyle: 'solid'
+            });
+            this.polyline.setMap(this.map);
         });
     },
     toggleMapType() {
-        if(!this.map) return;
         const type = this.map.getMapTypeId();
         this.map.setMapTypeId(type === kakao.maps.MapTypeId.ROADMAP ? kakao.maps.MapTypeId.HYBRID : kakao.maps.MapTypeId.ROADMAP);
     },
-    centerMap() { 
-        if(!this.map) return;
-        this.map.panTo(new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng)); 
-    }
+    centerMap() { this.map.panTo(this.marker.getPosition()); }
 };
 
 const App = {
-    config: { mode: '걷기', dist: 1 },
+    config: { mode: '걷기', dist: 1, docent: '듣기' },
+    state: { watchId: null, startTime: null, totalDist: 0, lastPos: null, step: 0 },
+
     init() { MapModule.init(); this.renderOptions(); },
     renderOptions() {
         const sel = document.getElementById('activeCourse'); sel.innerHTML = "";
         Object.entries(CourseData[this.config.mode]).forEach(([d, o]) => {
             const opt = document.createElement('option'); opt.value = d; opt.innerText = o.name;
+            if (parseInt(d) === this.config.dist) opt.selected = true;
             sel.appendChild(opt);
         });
         this.updateCourse(sel.value);
     },
-    setMode(m) { this.config.mode = m; this.renderOptions(); document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card'; document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card'; },
+    setMode(m) { this.config.mode = m; document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card'; document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card'; this.renderOptions(); },
     setDist(el, d) { document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active')); el.classList.add('active'); this.config.dist = d; this.renderOptions(); },
     updateCourse(k) { this.config.course = CourseData[this.config.mode][k]; },
-    async start() {
-        InfoModule.audio.play().catch(() => {});
+    setDocent(t) { this.config.docent = t; document.getElementById('docent-on').classList.toggle('active', t === '듣기'); document.getElementById('docent-off').classList.toggle('active', t === '조용히'); },
+    
+    start() {
+        this.state.startTime = new Date();
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('navi-widget').style.display = 'flex';
         document.getElementById('panel').style.display = 'block';
         
-        let i = 0; let step = 0;
+        // 🐾 시연용 이동 시뮬레이션 로직 (실제 GPS 연동 가능)
+        let i = 0;
         const moveInterval = setInterval(() => {
-            if (i > 20) { clearInterval(moveInterval); return; }
-            const nextLat = FIXED_START.lat - (i * 0.0003);
+            if (i > 30 || !this.state.startTime) { clearInterval(moveInterval); return; }
+            
+            const nextLat = FIXED_START.lat - (i * 0.0002);
             const nextLng = FIXED_START.lng - (i * 0.0001);
             const nextPos = new kakao.maps.LatLng(nextLat, nextLng);
             
-            if(MapModule.marker) MapModule.marker.setPosition(nextPos);
-            if(MapModule.map) MapModule.map.panTo(nextPos);
+            MapModule.marker.setPosition(nextPos);
+            MapModule.map.panTo(nextPos);
+            MapModule.trail.push(nextPos);
+            MapModule.polyline.setPath(MapModule.trail);
             
-            document.getElementById('navi-m').innerText = Math.max(0, 450 - (i * 20));
-            if (i % 5 === 0 && step < 4) {
-                const text = InfoModule.scripts[step++];
+            document.getElementById('navi-m').innerText = Math.max(0, 450 - (i * 15));
+            document.getElementById('current-speed').innerText = (Math.random() * 2 + 4).toFixed(1);
+
+            if (i % 8 === 0 && this.state.step < 4) {
+                const text = InfoModule.scripts[this.state.step++];
                 document.getElementById('guideText').innerHTML = `<b>부동산 도슨트 두부</b><br>${text}`;
-                InfoModule.speak(text);
+                InfoModule.speak(text, this.config.docent === '듣기');
             }
             i++;
-        }, 3000);
+        }, 2000);
+    },
+    finish() {
+        const min = ((new Date() - this.state.startTime) / 60000).toFixed(1);
+        this.state.startTime = null; // 타이머 정지
+        InfoModule.speak(InfoModule.scripts[3], this.config.docent === '듣기');
+        document.getElementById('summary-content').innerHTML = `
+            <div class="summary-item"><label>분석 시간</label><value>${min}분</value></div>
+            <div class="summary-item"><label>이동 거리</label><value>${(Math.random() * 1 + 0.5).toFixed(2)}km</value></div>
+            <div class="summary-item"><label>소모 칼로리</label><value>${Math.floor(Math.random() * 50 + 100)}kcal</value></div>
+            <div class="summary-item"><label>분석 지점</label><value>${this.state.step}곳</value></div>
+        `;
+        document.getElementById('summary-overlay').style.display = 'flex';
     }
 };
 window.onload = () => App.init();
