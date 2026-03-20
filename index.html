@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 두부 최종본</title>
+    <title>임장런 Pro - 최종본</title>
     
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=fc0e1252de533a43104fe5566190be9c&libraries=services,clusterer,drawing"></script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=fc0e1252de533a43104fe5566190be9c&libraries=services,clusterer,drawing&autoload=false"></script>
 
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; --orange: #FF9500; }
@@ -22,7 +22,10 @@
         .dist-card.active { background: var(--primary); color: white; }
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%238E8E93%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 15px center; background-size: 18px; }
         .start-btn { margin-top: 20px; width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: 800; font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
-        #map { height: 100vh; width: 100%; }
+        
+        /* 📍 지도의 높이를 100%로 확실히 지정 */
+        #map { height: 100vh; width: 100%; background: #eee; }
+        
         #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; background: var(--orange); color: white; padding: 10px 15px; border-radius: 15px; z-index: 3000; display: none; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 25px 25px 0 0; padding: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box; display: none;}
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow-y: auto; }
@@ -33,7 +36,7 @@
 <body>
 
 <div id="overlay">
-    <div style="margin-bottom: 25px;"><h1>임장런 with 두부 🐾</h1><p style="color:var(--gray); font-size: 0.9rem; margin-top: 5px;">카카오 엔진 / 구성로 90 기점</p></div>
+    <div style="margin-bottom: 25px;"><h1>임장런 with 두부 🐾</h1><p style="color:var(--gray); font-size: 0.9rem; margin-top: 5px;">구성로 90 기점 풀코스 분석</p></div>
     <div class="setup-group"><span class="setup-label">1. 오늘 나의 템포</span><div class="card-grid"><div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div><div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div></div></div>
     <div class="setup-group"><span class="setup-label">2. 목표 거리</span><div class="dist-grid"><div id="d1" class="dist-card active" onclick="App.setDist(this, 1)">1km</div><div id="d3" class="dist-card" onclick="App.setDist(this, 3)">3km</div><div id="d5" class="dist-card" onclick="App.setDist(this, 5)">5km</div><div id="d10" class="dist-card" onclick="App.setDist(this, 10)">10km</div></div></div>
     <div class="setup-group"><span class="setup-label">3. 임장 분석 코스 선택</span><select id="activeCourse" class="select-style" onchange="App.updateCourse(this.value)"></select></div>
@@ -49,15 +52,11 @@
     <button class="control-btn" onclick="MapModule.centerMap()">📍</button>
 </div>
 
-<div id="panel">
-    <div id="guideTitle" style="font-size:0.8rem; font-weight:800; color:var(--primary); margin-bottom:5px;">DUBU DEEP INSIGHT</div>
-    <div id="guideText">데이터 수집 중...</div>
-    <button class="control-btn" style="width:100%; border-radius:12px; margin-top:10px; font-size:14px; background:var(--dark); color:white;" onclick="location.reload()">다시 시작</button>
-</div>
+<div id="panel"><div id="guideTitle" style="font-size:0.8rem; font-weight:800; color:var(--primary); margin-bottom:5px;">DUBU DEEP INSIGHT</div><div id="guideText">데이터 로딩 중...</div><button class="control-btn" style="width:100%; border-radius:12px; margin-top:10px; font-size:14px; background:var(--dark); color:white;" onclick="location.reload()">다시 시작</button></div>
 
 <script>
 const ELEVENLABS_API_KEY = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
-const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
+const VOICE_ID = "7osWBIDUlEpEpEMcbqoW";
 const FIXED_START = { lat: 37.31845, lng: 127.11052 };
 
 const InfoModule = {
@@ -66,7 +65,7 @@ const InfoModule = {
         "안녕하세요, 부동산 도슨트 두부입니다. 지금부터 구성로 90, '구성역 래미안 2차' 단지를 기점으로 보정역 방면 정밀 분석 시뮬레이션을 시작하겠습니다. 이곳은 플랫폼시티와 가장 밀접하게 연결된 핵심 주거지입니다.",
         "이제 단지를 벗어나 구성로 보행로를 따라 이동해 보겠습니다. 정면의 마북천 정비 사업 구간은 입주민들의 삶의 질을 높이는 프리미엄 인프라입니다.",
         "현재 통과 중인 구성로 상업시설은 전형적인 항아리 상권의 특징을 가집니다. 플랫폼시티 완공 시 대규모 인구 유입의 낙수 효과를 가장 먼저 누릴 지역이죠.",
-        "보정역 기점과 플랫폼시티 연결축에 도달했습니다. 래미안 2차는 미래 지향적 도시 계획의 가장 앞자리에 위치해 있습니다. 오늘의 분석을 마칩니다."
+        "보정역 기점과 플랫폼시티 연결축에 도달했습니다. 래미안 2차는 이러한 미래 지향적 도시 계획의 가장 앞자리에 위치해 있습니다. 오늘의 분석을 마칩니다."
     ],
     async speak(text, enabled) {
         if (!enabled) return;
@@ -93,18 +92,25 @@ const CourseData = {
 
 const MapModule = {
     map: null, marker: null,
+    // 🛡️ 엔진 로드 후 지도를 그리는 안전 장치
     init() {
-        const container = document.getElementById('map');
-        const pos = new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng);
-        this.map = new kakao.maps.Map(container, { center: pos, level: 3 });
-        this.marker = new kakao.maps.Marker({ position: pos });
-        this.marker.setMap(this.map);
+        kakao.maps.load(() => {
+            const container = document.getElementById('map');
+            const pos = new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng);
+            this.map = new kakao.maps.Map(container, { center: pos, level: 3 });
+            this.marker = new kakao.maps.Marker({ position: pos });
+            this.marker.setMap(this.map);
+        });
     },
     toggleMapType() {
+        if(!this.map) return;
         const type = this.map.getMapTypeId();
         this.map.setMapTypeId(type === kakao.maps.MapTypeId.ROADMAP ? kakao.maps.MapTypeId.HYBRID : kakao.maps.MapTypeId.ROADMAP);
     },
-    centerMap() { this.map.panTo(new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng)); }
+    centerMap() { 
+        if(!this.map) return;
+        this.map.panTo(new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng)); 
+    }
 };
 
 const App = {
@@ -134,8 +140,10 @@ const App = {
             const nextLat = FIXED_START.lat - (i * 0.0003);
             const nextLng = FIXED_START.lng - (i * 0.0001);
             const nextPos = new kakao.maps.LatLng(nextLat, nextLng);
-            MapModule.marker.setPosition(nextPos);
-            MapModule.map.panTo(nextPos);
+            
+            if(MapModule.marker) MapModule.marker.setPosition(nextPos);
+            if(MapModule.map) MapModule.map.panTo(nextPos);
+            
             document.getElementById('navi-m').innerText = Math.max(0, 450 - (i * 20));
             if (i % 5 === 0 && step < 4) {
                 const text = InfoModule.scripts[step++];
