@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 두부 최종본</title>
+    <title>임장런 Pro - 카카오 엔진</title>
     
-    <script>
-        const GOOGLE_MAPS_API_KEY = "AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo";
-        document.write(`<script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=geometry,places"><\/script>`);
-    </script>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_JAVASCRIPT_KEY&libraries=services,clusterer,drawing"></script>
 
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; --orange: #FF9500; }
-        body { margin: 0; font-family: 'Pretendard', -apple-system, sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
         
-        /* 설정 및 시작 오버레이 */
+        /* 설정 레이어 */
         #overlay { position: fixed; inset: 0; background: white; z-index: 5000; padding: 30px 25px; display: flex; flex-direction: column; overflow-y: auto; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
         .setup-group { margin-bottom: 18px; }
         .setup-label { font-size: 0.85rem; font-weight: 700; color: var(--gray); margin-bottom: 8px; display: block; }
+        
+        /* 버튼 및 카드 디자인 */
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .option-card { background: var(--light); border: 2px solid transparent; border-radius: 15px; padding: 12px; text-align: center; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
         .option-card.active { border-color: var(--primary); background: #FFF5F5; color: var(--primary); font-weight: 800; }
@@ -26,30 +25,24 @@
         .dist-card { background: var(--light); border-radius: 12px; padding: 10px 0; text-align: center; font-weight: 700; cursor: pointer; font-size: 0.8rem; }
         .dist-card.active { background: var(--primary); color: white; }
         
-        /* 드롭다운 스타일 */
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%238E8E93%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 15px center; background-size: 18px; }
-        
         .start-btn { margin-top: 20px; width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 18px; font-weight: 800; font-size: 1.2rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
 
+        /* 지도 및 위젯 */
         #map { height: 100vh; width: 100%; }
-        
-        /* 네비게이션 위젯 */
         #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; background: var(--orange); color: white; padding: 10px 15px; border-radius: 15px; z-index: 3000; display: none; align-items: center; gap: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        
-        /* 하단 브리핑 패널 */
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 220px; background: white; border-radius: 25px 25px 0 0; padding: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box; display: none;}
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow-y: auto; }
         
-        /* 지도 컨트롤 버튼 (위성/중앙) */
+        /* 🛰️ 위성뷰 & 내 위치 컨트롤 */
         .map-controls { position: absolute; right: 20px; bottom: 240px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
         .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .end-btn { width: 100%; padding: 15px; background: var(--dark); color: white; border: none; border-radius: 12px; font-weight: 800; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <div style="margin-bottom: 25px;"><h1>임장런 with 두부 🐾</h1><p style="color:var(--gray); font-size: 0.9rem; margin-top: 5px;">구성로 90 기점 풀코스 분석</p></div>
+    <div style="margin-bottom: 25px;"><h1>임장런 with 두부 🐾</h1><p style="color:var(--gray); font-size: 0.9rem; margin-top: 5px;">카카오 엔진 / 구성로 90 기점</p></div>
     <div class="setup-group"><span class="setup-label">1. 오늘 나의 템포</span><div class="card-grid"><div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div><div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div></div></div>
     <div class="setup-group"><span class="setup-label">2. 목표 거리</span><div class="dist-grid"><div id="d1" class="dist-card active" onclick="App.setDist(this, 1)">1km</div><div id="d3" class="dist-card" onclick="App.setDist(this, 3)">3km</div><div id="d5" class="dist-card" onclick="App.setDist(this, 5)">5km</div><div id="d10" class="dist-card" onclick="App.setDist(this, 10)">10km</div></div></div>
     <div class="setup-group"><span class="setup-label">3. 임장 분석 코스 선택</span><select id="activeCourse" class="select-style" onchange="App.updateCourse(this.value)"></select></div>
@@ -57,40 +50,33 @@
     <button class="start-btn" onclick="App.start()">분석 시작! 🚀</button>
 </div>
 
-<div id="navi-widget">
-    <div style="font-size: 1.5rem; font-weight: 900;">↑</div>
-    <div style="flex:1">
-        <div style="font-size: 1rem; font-weight: 800;"><span id="navi-m">450</span>m</div>
-        <div style="font-size: 0.65rem; opacity: 0.9;">보정역 방면 분석 이동 중</div>
-    </div>
-</div>
+<div id="navi-widget"><div style="font-size: 1.5rem; font-weight: 900;">↑</div><div style="flex:1"><div style="font-size: 1rem; font-weight: 800;"><span id="navi-m">450</span>m</div><div style="font-size: 0.65rem; opacity: 0.9;">보정역 방면 시뮬레이션 중</div></div></div>
 
 <div id="map"></div>
 
 <div class="map-controls">
-    <button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button>
-    <button class="control-btn" onclick="MapModule.centerMap()">📍</button>
+    <button class="control-btn" onclick="MapModule.toggleMapType()" title="위성보기">🛰️</button>
+    <button class="control-btn" onclick="MapModule.centerMap()" title="중앙맞춤">📍</button>
 </div>
 
 <div id="panel">
     <div id="guideTitle" style="font-size:0.8rem; font-weight:800; color:var(--primary); margin-bottom:5px;">DUBU DEEP INSIGHT</div>
-    <div id="guideText">데이터 로딩 중...</div>
-    <button class="end-btn" onclick="location.reload()">다시 시작</button>
+    <div id="guideText">데이터 수집 중...</div>
+    <button class="control-btn" style="width:100%; border-radius:12px; margin-top:10px; font-size:14px; background:var(--dark); color:white;" onclick="location.reload()">다시 시작</button>
 </div>
 
 <script>
-// 🛡️ 2. SECRETS (ELEVENLABS)
 const ELEVENLABS_API_KEY = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
-const VOICE_ID = "7osWBIDUlEpEpEMcbqoW";
-const FIXED_START = { lat: 37.31845, lng: 127.11052 };
+const VOICE_ID = "7osWBIDUlEhEpEMcbqoW";
+const FIXED_START = { lat: 37.31845, lng: 127.11052 }; // 구성로 90 래미안 2차 정문
 
 const InfoModule = {
     audio: new Audio(),
     scripts: [
-        "안녕하세요, 부동산 도슨트 두부입니다. 지금부터 구성로 90, '구성역 래미안 2차' 단지를 기점으로 보정역 방면 정밀 분석 시뮬레이션을 시작하겠습니다. 이곳은 단순히 용인의 한 아파트 단지가 아닙니다. 향후 경기 남부의 경제 중심지가 될 '용인 플랫폼시티'와 가장 밀접하게 연결된 핵심 주거지입니다. 삼성물산의 견고한 시공 능력과 플랫폼시티라는 거대 호재가 만나며 마북동 일대에서 독보적인 브랜드 파워를 유지하고 있죠. 특히 단지 정문 앞 구성로의 확장 가능성과 인근 보행 환경의 변화는 이곳의 지가 상승을 견인하는 가장 강력한 변수입니다.",
-        "이제 단지를 벗어나 구성로 보행로를 따라 이동해 보겠습니다. 정면을 보시면 마북천 정비 사업 구간이 보입니다. 최근 수변 공원화 사업이 본격화되면서 이곳의 주거 가치는 한 단계 더 격상되었습니다. 과거의 단순한 하천이 아닌, 입주민들의 삶의 질을 높이는 프리미엄 인프라로 탈피하고 있는 것이죠. 또한 우측을 주목해 주십시오. 최근 GTX-A 용인역이 개통되면서 이곳에서 강남 삼성역까지 10분대 진입이 가능해졌습니다. 이는 단순한 교통 호재를 넘어, 수도권 남부 주거 지도의 판도를 바꾸는 사건입니다.",
-        "현재 통과 중인 구성로 상업시설과 용구대로 연결 지점을 분석해 보겠습니다. 이 지역 상권은 전형적인 항아리 상권의 특징을 가집니다. 배후에 약 3,000세대의 고정 수요를 확보하고 있으며, 플랫폼시티 완공 시 대규모 인구 유입에 따른 낙수 효과를 가장 먼저 누릴 지역이죠. 특히 주목할 점은 평지 위주의 보행 환경은 보정역까지의 심리적 거리를 단축시키며, 이는 매매가 산정 시 '역세권 프리미엄'을 극대화하는 요소로 작용합니다.",
-        "마지막으로 보정역 기점과 플랫폼시티 융복합 클러스터 연결축에 도달하고 있습니다. 이곳은 향후 반도체 클러스터와 연결되는 수도권 남부의 지식산업 메카가 될 곳입니다. 래미안 2차는 이러한 미래 지향적 도시 계획의 가장 앞자리에 위치해 있습니다. 오늘의 임장 분석을 요약하자면, 첫째, GTX-A와 플랫폼시티라는 쌍둥이 호재의 최대 수혜지. 둘째, 마북천과 평지 지형이 주는 압도적 주거 쾌적성. 셋째, 삼성 브랜드 파워가 결합된 완벽한 투자 요지입니다. 감사합니다."
+        "안녕하세요, 부동산 도슨트 두부입니다. 지금부터 구성로 90, '구성역 래미안 2차' 단지를 기점으로 보정역 방면 정밀 분석 시뮬레이션을 시작하겠습니다. 이곳은 플랫폼시티와 가장 밀접하게 연결된 핵심 주거지입니다.",
+        "이제 단지를 벗어나 구성로 보행로를 따라 이동해 보겠습니다. 정면의 마북천 정비 사업 구간은 입주민들의 삶의 질을 높이는 프리미엄 인프라로 탈바꿈하고 있습니다.",
+        "현재 통과 중인 구성로 상업시설은 전형적인 항아리 상권의 특징을 가집니다. 배후에 약 3,000세대의 고정 수요를 확보하고 있으며, 플랫폼시티의 수혜를 직접 누릴 지역이죠.",
+        "보정역 기점과 플랫폼시티 연결축에 도달하고 있습니다. 래미안 2차는 이러한 미래 지향적 도시 계획의 가장 앞자리에 위치해 있습니다. 오늘의 임장 분석을 마칩니다."
     ],
     async speak(text, enabled) {
         if (!enabled) return;
@@ -98,7 +84,6 @@ const InfoModule = {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const audioCtx = new AudioContext();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
-
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
                 method: "POST",
                 headers: { "xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json" },
@@ -107,42 +92,40 @@ const InfoModule = {
             const blob = await res.blob();
             this.audio.src = URL.createObjectURL(blob);
             this.audio.play();
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("음성 오류:", e); }
     }
 };
 
 const CourseData = {
     '걷기': {
-        1: { name: "🏡 [걷기] 래미안 2차 → 보행 가치 분석", end: {lat: 37.3121, lng: 127.1082} },
-        3: { name: "🌳 [걷기] 마북천 수변길 산책 코스", end: {lat: 37.3050, lng: 127.1050} },
-        5: { name: "☕ [걷기] 보정동 카페거리 상권 투어", end: {lat: 37.3210, lng: 127.1090} },
-        10: { name: "🏗️ [걷기] 플랫폼시티 전체 주거 벨트", end: {lat: 37.2950, lng: 127.1150} }
+        1: { name: "🏡 [걷기] 래미안 2차 → 보행 분석", end: {lat: 37.3121, lng: 127.1082} },
+        3: { name: "🌳 [걷기] 마북천 수변 산책로 코스", end: {lat: 37.3050, lng: 127.1050} }
     },
     '러닝': {
-        1: { name: "⚡ [러닝] GTX 용인역 수혜권 고속 스캔", end: {lat: 37.3110, lng: 127.1052} },
-        3: { name: "🏃 [러닝] 구성로-용구대로 핵심 상권주행", end: {lat: 37.3250, lng: 127.1150} },
-        5: { name: "🔥 [러닝] 신갈-구성역 갭투자 코스 분석", end: {lat: 37.2950, lng: 127.1050} },
-        10: { name: "🏅 [러닝] 기흥 동측 부동산 시장 강도 런", end: {lat: 37.3400, lng: 127.0950} }
+        1: { name: "⚡ [러닝] GTX 용인역 수혜권 스캔", end: {lat: 37.3110, lng: 127.1052} }
     }
 };
 
 const MapModule = {
-    map: null, marker: null, rend: null, trail: [], line: null,
+    map: null, marker: null,
     init() {
-        this.map = new google.maps.Map(document.getElementById("map"), { center: FIXED_START, zoom: 17, disableDefaultUI: true });
-        this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 } });
-        this.marker = new google.maps.Marker({ map: this.map, position: FIXED_START, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(40, 40) } });
-        this.line = new google.maps.Polyline({ map: this.map, strokeColor: "#555", strokeWeight: 4, icons: [{icon:{path:'M 0,-1 0,1', strokeOpacity:1, scale:3}, repeat:'15px'}] });
+        const container = document.getElementById('map');
+        const pos = new kakao.maps.LatLng(FIXED_START.lat, FIXED_START.lng);
+        const options = { center: pos, level: 3 };
+        this.map = new kakao.maps.Map(container, options);
+        
+        // 두부 마커 (강아지 아이콘 대신 기본 마커 사용)
+        this.marker = new kakao.maps.Marker({ position: pos });
+        this.marker.setMap(this.map);
     },
-    async getPath(dest) {
-        return new Promise(res => {
-            new google.maps.DirectionsService().route({ origin: FIXED_START, destination: dest, travelMode: 'WALKING' }, (r, s) => {
-                if (s === 'OK') { this.rend.setDirections(r); res(r.routes[0].overview_path); }
-            });
-        });
+    toggleMapType() {
+        const type = this.map.getMapTypeId();
+        this.map.setMapTypeId(type === kakao.maps.MapTypeId.ROADMAP ? kakao.maps.MapTypeId.HYBRID : kakao.maps.MapTypeId.ROADMAP);
     },
-    toggleMapType() { const c = this.map.getMapTypeId(); this.map.setMapTypeId(c === 'roadmap' ? 'hybrid' : 'roadmap'); },
-    centerMap() { this.map.panTo(this.marker.getPosition()); }
+    centerMap() {
+        const pos = this.marker.getPosition();
+        this.map.panTo(pos);
+    }
 };
 
 const App = {
@@ -152,7 +135,6 @@ const App = {
         const sel = document.getElementById('activeCourse'); sel.innerHTML = "";
         Object.entries(CourseData[this.config.mode]).forEach(([d, o]) => {
             const opt = document.createElement('option'); opt.value = d; opt.innerText = o.name;
-            if (parseInt(d) === this.config.dist) opt.selected = true;
             sel.appendChild(opt);
         });
         this.updateCourse(sel.value);
@@ -166,21 +148,30 @@ const App = {
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('navi-widget').style.display = 'flex';
         document.getElementById('panel').style.display = 'block';
-        const path = await MapModule.getPath(this.config.course.end);
-        let step = 0; let i = 0;
-        const move = setInterval(() => {
-            if (i >= path.length) { clearInterval(move); return; }
-            const pos = path[i];
-            MapModule.marker.setPosition(pos); MapModule.map.panTo(pos);
-            MapModule.trail.push(pos); MapModule.line.setPath(MapModule.trail);
-            document.getElementById('navi-m').innerText = Math.max(0, 450 - (i * 15));
-            if (i % Math.floor(path.length / 4) === 0 && step < 4) {
+        
+        // 🐾 시뮬레이션 이동 로직 (카카오맵 버전)
+        let i = 0; let step = 0;
+        const moveInterval = setInterval(() => {
+            if (i > 20) { clearInterval(moveInterval); return; }
+            
+            // 좌표를 아주 미세하게 보정역 방면으로 이동시킴
+            const nextLat = FIXED_START.lat - (i * 0.0003);
+            const nextLng = FIXED_START.lng - (i * 0.0001);
+            const nextPos = new kakao.maps.LatLng(nextLat, nextLng);
+            
+            MapModule.marker.setPosition(nextPos);
+            MapModule.map.panTo(nextPos);
+            
+            document.getElementById('navi-m').innerText = Math.max(0, 450 - (i * 20));
+
+            // 4단계 브리핑 출력 및 음성 재생
+            if (i % 5 === 0 && step < 4) {
                 const text = InfoModule.scripts[step++];
                 document.getElementById('guideText').innerHTML = `<b>부동산 도슨트 두부</b><br>${text}`;
                 InfoModule.speak(text, App.config.docent === '듣기');
             }
             i++;
-        }, 1500);
+        }, 3000);
     }
 };
 window.onload = () => App.init();
