@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 실시간 위치 모드</title>
+    <title>임장런 Pro - 실시간 도슨트</title>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp1tTcQN6VvPFfQk2uMM6E0xrao1dgzTo&libraries=geometry,places"></script>
     <style>
         :root { --primary: #FF3B30; --dark: #1C1C1E; --gray: #8E8E93; --light: #F2F2F7; --orange: #FF9500; }
-        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); }
+        body { margin: 0; font-family: 'Pretendard', sans-serif; background: var(--light); overflow: hidden; color: var(--dark); -webkit-font-smoothing: antialiased; }
         #overlay { position: fixed; inset: 0; background: white; z-index: 2000; padding: 40px 25px; display: flex; flex-direction: column; overflow-y: auto; }
         .header-section h1 { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--primary); letter-spacing: -1px; }
         .setup-group { margin-bottom: 20px; }
@@ -37,7 +37,7 @@
         #speed-widget { position: absolute; top: 15px; left: 15px; background: rgba(28,28,30,0.8); color: white; padding: 8px 12px; border-radius: 10px; z-index: 900; font-weight: 700; font-size: 0.7rem; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 180px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box;}
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.5; color: var(--dark); margin-bottom: 15px; height: 3em; overflow: hidden; }
-        .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; }
+        .end-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; font-size: 1rem; cursor: pointer; }
         #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 4000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
     </style>
 </head>
@@ -52,7 +52,7 @@
 </div>
 
 <div id="overlay">
-    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>내 실제 위치 기반 실시간 가치 분석</p></div>
+    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>실시간 위치 기반 부동산 가치 분석</p></div>
     <div class="setup-group">
         <span class="setup-label">1. 오늘 나의 템포</span>
         <div class="card-grid">
@@ -82,18 +82,17 @@
 <div id="speed-widget">⚡ 속도: <span id="current-speed">0.0</span> km/h</div>
 <div id="map"></div>
 <div id="panel">
-    <div id="guideText">현재 위치를 수신 중입니다...</div>
+    <div id="guideText">현재 위치를 수집 중입니다...</div>
     <button class="end-btn" onclick="App.finish()">분석 종료</button>
 </div>
 
 <div id="summary-overlay">
-    <h1 style="color:var(--primary);">임장 리포트 🐾</h1>
+    <h1 style="color:var(--primary);">임장 리포트 완료 🐾</h1>
     <div id="summary-content" style="margin: 20px 0; width: 100%;"></div>
-    <button class="start-btn" onclick="location.reload()">다시 시작</button>
+    <button class="start-btn" onclick="location.reload()">홈으로 돌아가기</button>
 </div>
 
 <script>
-// 전역 설정: 출발지를 고정하지 않고 기기의 GPS를 사용합니다.
 let USER_CURRENT_POS = null;
 
 const MapModule = {
@@ -104,16 +103,15 @@ const MapModule = {
         this.rend = new google.maps.DirectionsRenderer({ map: this.map, polylineOptions: { strokeColor: "#FF3B30", strokeWeight: 6 } });
         this.marker = new google.maps.Marker({ map: this.map, icon: { url: "https://cdn-icons-png.flaticon.com/512/616/616430.png", scaledSize: new google.maps.Size(40, 40) } });
         
-        // 초기 위치 수신 시도
         navigator.geolocation.getCurrentPosition(pos => {
             USER_CURRENT_POS = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             this.map.setCenter(USER_CURRENT_POS);
             this.marker.setPosition(USER_CURRENT_POS);
+            document.getElementById('guideText').innerText = "준비 완료! 분석 시작 버튼을 눌러주세요.";
         });
     },
     drawAutoRoute(distKm, mode) {
         if (!USER_CURRENT_POS) return;
-        // 현재 위치에서 목표 거리만큼 떨어진 가상의 목적지 생성 (단순 임장용 북쪽 이동 예시)
         const dest = { lat: USER_CURRENT_POS.lat + (distKm * 0.009), lng: USER_CURRENT_POS.lng };
         this.svc.route({
             origin: USER_CURRENT_POS, destination: dest,
@@ -132,7 +130,6 @@ const InfoModule = {
     audio: new Audio(),
     async speak(text, enabled) {
         if(!enabled) return;
-        // 오디오 엔진 활성화를 위해 빈 소리 미리 재생 방식을 start()에서 호출함
         try {
             const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/7osWBIDUlEhEpEMcbqoW`, {
                 method: "POST",
@@ -156,34 +153,28 @@ const App = {
     setDocent(t) { this.config.docent = t; document.getElementById('docent-on').classList.toggle('active', t === '듣기'); document.getElementById('docent-off').classList.toggle('active', t === '조용히'); },
     
     start() {
-        // [중요] 사운드 정책 해결: 버튼 클릭 시 오디오 객체를 한 번 건드려줍니다.
-        InfoModule.audio.play().catch(() => {}); 
-        
-        if (!USER_CURRENT_POS) { alert("위치 정보를 수신 중입니다. 잠시만 기다려주세요."); return; }
+        InfoModule.audio.play().catch(() => {}); // 사운드 잠금 해제
+        if (!USER_CURRENT_POS) { alert("위치 정보를 수신 중입니다."); return; }
         
         this.state.startTime = new Date();
         document.getElementById('overlay').style.display = 'none';
         MapModule.drawAutoRoute(this.config.dist, this.config.mode);
-        
         this.track();
-        InfoModule.speak("두부 임장 시스템을 시작합니다. 현재 위치를 기반으로 주변 부동산 가치를 분석합니다.", this.config.docent === '듣기');
-        document.getElementById('guideText').innerText = "임장 분석이 시작되었습니다. 이동 경로를 따라가주세요.";
+        InfoModule.speak("두부 임장 시스템을 시작합니다. 현재 위치 주변의 부동산 가치를 분석합니다.", this.config.docent === '듣기');
+        document.getElementById('guideText').innerText = "분석이 시작되었습니다. 경로를 따라 이동하며 주변 입지를 확인해보세요.";
     },
     track() {
         this.state.watchId = navigator.geolocation.watchPosition(pos => {
             const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             MapModule.marker.setPosition(p);
             MapModule.map.panTo(p);
-            
             let s = pos.coords.speed ? pos.coords.speed * 3.6 : 0;
             document.getElementById('current-speed').innerText = s.toFixed(1);
-            
             if (this.state.lastPos) {
-                const d = google.maps.geometry.spherical.computeDistanceBetween(
+                this.state.totalDist += google.maps.geometry.spherical.computeDistanceBetween(
                     new google.maps.LatLng(this.state.lastPos.lat, this.state.lastPos.lng),
                     new google.maps.LatLng(p.lat, p.lng)
                 );
-                this.state.totalDist += d;
             }
             this.state.lastPos = p;
         }, null, { enableHighAccuracy: true });
@@ -193,9 +184,10 @@ const App = {
         const min = ((new Date() - this.state.startTime) / 60000).toFixed(1);
         const km = (this.state.totalDist / 1000).toFixed(2);
         document.getElementById('summary-content').innerHTML = `
-            <p>분석 시간: ${min}분</p>
-            <p>이동 거리: ${km}km</p>
-            <p>분석 요약: 현재 지역의 입지 가치 분석 완료</p>
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 15px;">👏 수고하셨습니다!</div>
+            <p>분석 시간: <b>${min}분</b></p>
+            <p>이동 거리: <b>${km}km</b></p>
+            <p>현장 분석 지표 수집이 완료되었습니다.</p>
         `;
         document.getElementById('summary-overlay').style.display = 'flex';
         InfoModule.speak("임장 분석이 종료되었습니다. 리포트를 확인하세요.", this.config.docent === '듣기');
