@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>임장런 Pro - 최종 완성</title>
+    <title>임장런 Pro - 프로토타입 최종</title>
     
     <script>
-        /* 🛡️ [GitHub Secrets 이름과 동일화] */
-        const KAKAO_API_KEY = "a340fabd5ac37c1191bdb4f29b252244"; // 🔑 직접 입력
-        const ELEVENLABS_API_KEY = "6a91ca2263b586b27334b1415dc6bf5b4012e8ae4faece9cd98966757f274f75"; // 🔑 직접 입력
-        const VOICE_KEY = "7osWBIDUlEhEpEMcbqoW"; // 🔑 (Secrets의 VOICE_KEY 값 입력)
+        /* 🛡️ [SECRET AREA] API KEYS */
+        const KAKAO_API_KEY = "fc0e1252de533a43104fe5566190be9c"; 
+        const ELEVENLABS_API_KEY = "3febe1f6157a65575121c1a588dec4ef54dc0206f6bb555d266ca662a5b18c2e";
+        const VOICE_KEY = "7osWBIDUlEhEpEMcbqoW";
 
-        // 카카오 지도 로드
         document.write(`<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_API_KEY}&libraries=services,clusterer,drawing&autoload=false"><\/script>`);
     </script>
 
@@ -31,85 +30,83 @@
         .select-style { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #eee; background-color: #fff; font-size: 0.95rem; outline: none; appearance: none; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiM4RThFOTMiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSI2IDkgMTIgMTUgMTggOSI+PC9wb2x5bGluZT48L3N2Zz4='); background-repeat: no-repeat; background-position: right 15px center; background-size: 18px; }
         .start-btn { margin-top: 30px; width: 100%; padding: 20px; background: var(--primary); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(255,59,48,0.3); }
         #map { width: 100%; height: 100%; background: #eee; }
-        #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; background: var(--orange); color: white; padding: 12px 18px; border-radius: 15px; z-index: 3000; display: none; align-items: center; gap: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
-        .navi-icon { font-size: 1.8rem; font-weight: 900; }
-        .navi-course-name { font-size: 0.7rem; opacity: 0.9; font-weight: 500; margin-bottom: 2px; }
-        .navi-main { font-size: 1.1rem; font-weight: 800; }
-        #speed-widget { position: absolute; top: 100px; left: 15px; background: rgba(28,28,30,0.8); color: white; padding: 8px 12px; border-radius: 10px; z-index: 900; font-weight: 700; font-size: 0.75rem; }
+        #navi-widget { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; background: var(--orange); color: white; padding: 12px 18px; border-radius: 15px; z-index: 3000; display: none; align-items: center; gap: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); text-align: center; }
+        .navi-main { font-size: 1.1rem; font-weight: 800; width: 100%; }
         #panel { position: absolute; bottom: 0; width: 100%; min-height: 200px; background: white; border-radius: 30px 30px 0 0; padding: 25px; box-shadow: 0 -10px 30px rgba(0,0,0,0.05); z-index: 100; box-sizing: border-box; display: none; }
-        #guideTitle { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
         #guideText { font-size: 0.95rem; font-weight: 600; line-height: 1.6; color: var(--dark); height: 5.5em; overflow-y: auto; }
         .map-controls { position: absolute; right: 20px; bottom: 240px; display: flex; flex-direction: column; gap: 12px; z-index: 150; }
         .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); font-size: 20px; display: flex; align-items: center; justify-content: center; }
         .exit-btn { width: 100%; padding: 18px; background: var(--dark); color: white; border: none; border-radius: 15px; font-weight: 800; margin-top: 10px; }
-        #summary-overlay { display: none; position: fixed; inset: 0; background: white; z-index: 6000; padding: 40px 25px; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; margin: 30px 0; }
-        .summary-item { background: var(--light); padding: 20px; border-radius: 20px; }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>내 발걸음으로 시작하는 입지 분석</p></div>
+    <div class="header-section"><h1>임장런 with 두부 🐾</h1><p>실시간 데이터 기반 입지 분석 도슨트</p></div>
     <div class="setup-group">
-        <span class="setup-label">1. 오늘 나의 템포</span>
+        <span class="setup-label">1. 분석 모드</span>
         <div class="card-grid"><div id="btn-walk" class="option-card active" onclick="App.setMode('걷기')">🚶 걷기</div><div id="btn-run" class="option-card" onclick="App.setMode('러닝')">🏃 러닝</div></div>
     </div>
     <div class="setup-group">
         <span class="setup-label">2. 목표 거리</span>
         <div class="dist-grid"><div id="d1" class="dist-card active" onclick="App.setDist(this, 1)">1km</div><div id="d3" class="dist-card" onclick="App.setDist(this, 3)">3km</div><div id="d5" class="dist-card" onclick="App.setDist(this, 5)">5km</div><div id="d10" class="dist-card" onclick="App.setDist(this, 10)">10km</div></div>
     </div>
-    <div class="setup-group"><span class="setup-label">3. 임장 분석 코스 선택</span><select id="activeCourse" class="select-style" onchange="App.updateCourse(this.value)"></select></div>
-    <div class="setup-group"><span class="setup-label">4. 가이드 음성</span><div class="card-grid"><div id="docent-on" class="option-card active" onclick="App.setDocent('듣기')">두부 보이스 ON</div><div id="docent-off" class="option-card" onclick="App.setDocent('조용히')">조용히</div></div></div>
-    <button class="start-btn" onclick="App.start()">분석 시작! 🚀</button>
+    <div class="setup-group"><span class="setup-label">3. 정밀 분석 코스 (모드별 4종)</span><select id="activeCourse" class="select-style" onchange="App.updateCourse(this.value)"></select></div>
+    <button class="start-btn" onclick="App.start()">프로토타입 분석 시작! 🚀</button>
 </div>
 
-<div id="navi-widget">
-    <div class="navi-icon" id="fake-arrow">↑</div>
-    <div class="navi-info">
-        <div class="navi-course-name" id="display-course-name">코스 로딩 중...</div>
-        <div class="navi-main"><span id="fake-m">450</span>m 직진</div>
-    </div>
-</div>
-
-<div id="speed-widget">⚡ 현재: <span id="current-speed">0.0</span> km/h</div>
+<div id="navi-widget"><div class="navi-main"><span id="display-course-name">코스 분석 준비 중</span></div></div>
 <div id="map"></div>
 <div class="map-controls"><button class="control-btn" onclick="MapModule.toggleMapType()">🛰️</button><button class="control-btn" onclick="MapModule.centerMap()">📍</button></div>
-<div id="panel"><div id="guideTitle">DUBU DEEP INSIGHT</div><div id="guideText">데이터 수집 중...</div><button class="exit-btn" onclick="App.finish()">분석 종료 및 정리</button></div>
-<div id="summary-overlay"><h1 style="color:var(--primary);">임장 리포트 완료! 🐾</h1><div class="summary-grid" id="summary-content"></div><button class="start-btn" onclick="location.reload()">새로운 분석 시작</button></div>
+<div id="panel"><div id="guideTitle" style="color:var(--primary); font-weight:800; font-size:0.8rem;">DUBU PROFESSIONAL INSIGHT</div><div id="guideText">데이터 수집 중...</div><button class="exit-btn" onclick="location.reload()">분석 종료</button></div>
 
 <script>
     const InfoModule = {
         audio: new Audio(),
+        isSpeaking: false,
         scripts: [
-            "안녕하세요! 부동산 친구 두부입니다. 지금 계신 곳을 중심으로 입지 분석을 시작할게요. 주변 아파트와 상가의 가치를 실시간으로 살펴볼 테니 안전하게 이동해 주세요.",
-            "지금 지나고 계신 곳 주변은 사람들의 관심이 아주 높은 지역이에요. 지하철역과의 거리나 주변 공원 시설 덕분에 주거 만족도가 매우 높은 편입니다.",
-            "주변 상권이 아주 활발하네요. 맛집이나 편의시설이 잘 갖춰져 있어서 동네의 활력이 느껴집니다. 이런 곳은 나중에 집값을 결정하는 중요한 포인트가 돼요.",
-            "오늘의 분석을 모두 마쳤습니다! 정말 고생 많으셨어요. 성공적인 임장이었습니다!"
+            "부동산 도슨트 두부입니다. 현재 위치를 기반으로 상업 지표와 주거 가치를 냉철하게 분석하겠습니다.",
+            "해당 구역은 전형적인 항아리 상권으로 상가 공실률이 낮으며, 배후 단지의 강력한 고정 수요를 확보한 고부가가치 지역입니다.",
+            "주변 인프라 정비 사업이 포착되었습니다. 이는 지가 상승의 강력한 트리거가 되어 자산 가치 상승으로 이어질 가능성이 매우 높습니다.",
+            "교통 호재와 학군 프리미엄이 결합된 입지입니다. 하방 경직성이 강해 경기 변동에도 자산 가치를 유지할 수 있는 핵심 요지입니다.",
+            "현재 보시는 권역은 유동 인구의 소비 성향이 매우 강한 곳으로, 향후 상권 확장에 따른 임대 수익 상승이 기대되는 구역입니다."
         ],
-        // 📢 소리 재생을 위한 '잠금 해제' 필수 로직
-        async unlock() {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            if (ctx.state === 'suspended') await ctx.resume();
-            this.audio.play().catch(()=>{}); 
-        },
-        async speak(text, enabled) {
-            if (!enabled) return;
+        async unlock() { const ctx = new (window.AudioContext || window.webkitAudioContext)(); await ctx.resume(); },
+        async speak() {
+            if (this.isSpeaking) return;
+            this.isSpeaking = true;
+            const text = this.scripts[Math.floor(Math.random() * this.scripts.length)];
+            document.getElementById('guideText').innerText = text;
+
             try {
                 const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_KEY}`, {
                     method: "POST", headers: { "xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json" },
-                    body: JSON.stringify({ text, model_id: "eleven_multilingual_v2" })
+                    body: JSON.stringify({ text, model_id: "eleven_multilingual_v2", voice_settings: { stability: 0.35, similarity_boost: 0.85 } })
                 });
                 const blob = await res.blob();
                 this.audio.src = URL.createObjectURL(blob);
+                this.audio.onended = () => {
+                    this.isSpeaking = false;
+                    setTimeout(() => this.speak(), 3000); // 🚨 3초 공백 후 무한 브리핑
+                };
                 await this.audio.play();
-            } catch(e) { console.error("음성 실패:", e); }
+            } catch(e) { this.isSpeaking = false; setTimeout(() => this.speak(), 5000); }
         }
     };
 
     const CourseData = {
-        '걷기': { 1: { name: "🏡 [걷기] 동네 핵심 입지 분석" }, 3: { name: "🌳 [걷기] 수변 환경 탐방" }, 5: { name: "☕ [걷기] 상권 유동 분석" }, 10: { name: "🏗️ [걷기] 미래 가치 투어" } },
-        '러닝': { 1: { name: "⚡ [러닝] 역세권 고속 스캔" }, 3: { name: "🏃 [러닝] 시장 분석 코스" } }
+        '걷기': {
+            1: { name: "🏡 [걷기] 동네 핵심 입지 정밀 분석" },
+            3: { name: "🌳 [걷기] 쾌적 수변공원 주거 벨트 탐방" },
+            5: { name: "☕ [걷기] 로컬 핫플레이스 상권 유동 분석" },
+            10: { name: "🏗️ [걷기] 신도시 미래 가치 풀코스 투어" }
+        },
+        '러닝': {
+            1: { name: "⚡ [러닝] 초역세권 상권 고속 스캔" },
+            3: { name: "🏃 [러닝] 대단지 아파트 배후 시장 분석" },
+            5: { name: "🔥 [러닝] 핵심 재개발 예정지 임장 러닝" },
+            10: { name: "🏅 [러닝] 구역별 부동산 시장 강도 매핑" }
+        }
     };
 
     const MapModule = {
@@ -133,8 +130,7 @@
     };
 
     const App = {
-        config: { mode: '걷기', dist: 1, docent: '듣기', courseName: "" },
-        state: { startTime: null, step: 0, fakeM: 450 },
+        config: { mode: '걷기', dist: 1, courseName: "" },
         init() { MapModule.init(); this.renderOptions(); },
         renderOptions() {
             const sel = document.getElementById('activeCourse'); sel.innerHTML = "";
@@ -146,9 +142,8 @@
         setMode(m) { this.config.mode = m; this.renderOptions(); document.getElementById('btn-walk').className = m === '걷기' ? 'option-card active' : 'option-card'; document.getElementById('btn-run').className = m === '러닝' ? 'option-card active' : 'option-card'; },
         setDist(el, d) { document.querySelectorAll('.dist-card').forEach(c => c.classList.remove('active')); el.classList.add('active'); this.config.dist = d; this.renderOptions(); },
         updateCourse(k) { this.config.courseName = CourseData[this.config.mode][k].name; },
-        setDocent(t) { this.config.docent = t; document.getElementById('docent-on').classList.toggle('active', t === '듣기'); document.getElementById('docent-off').classList.toggle('active', t === '조용히'); },
         async start() {
-            await InfoModule.unlock(); // 소리 엔진 깨우기
+            await InfoModule.unlock();
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition((pos) => {
                 MapModule.updatePosition(pos.coords.latitude, pos.coords.longitude);
@@ -156,21 +151,11 @@
                 document.getElementById('navi-widget').style.display = 'flex';
                 document.getElementById('panel').style.display = 'block';
                 document.getElementById('display-course-name').innerText = this.config.courseName;
-                this.state.startTime = new Date();
-                InfoModule.speak(InfoModule.scripts[0], this.config.docent === '듣기');
-                document.getElementById('guideText').innerText = InfoModule.scripts[0];
+                InfoModule.speak(); // 무한 브리핑 시작
                 navigator.geolocation.watchPosition((p) => {
                     MapModule.updatePosition(p.coords.latitude, p.coords.longitude);
-                    document.getElementById('current-speed').innerText = (p.coords.speed ? p.coords.speed * 3.6 : 0).toFixed(1);
-                    if (this.state.fakeM > 10) { this.state.fakeM -= 2; document.getElementById('fake-m').innerText = this.state.fakeM; }
                 }, null, { enableHighAccuracy: true });
-            }, () => alert("위치 권한을 켜주세요!"), { enableHighAccuracy: true });
-        },
-        finish() {
-            const min = ((new Date() - this.state.startTime) / 60000).toFixed(1);
-            InfoModule.speak(InfoModule.scripts[3], this.config.docent === '듣기');
-            document.getElementById('summary-content').innerHTML = `<div class="summary-item"><label>시간</label><value>${min}분</value></div><div class="summary-item"><label>거리</label><value>0.72km</value></div>`;
-            document.getElementById('summary-overlay').style.display = 'flex';
+            }, () => alert("GPS를 켜주세요!"), { enableHighAccuracy: true });
         }
     };
     window.onload = () => App.init();
